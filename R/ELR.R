@@ -28,6 +28,14 @@
 #' mu.eq = (0.5*s-(L+1)/4)*f^2+(L-1)/2*f+(L+3)/4
 #' stopifnot(mu == mu.eq)
 #'
+#' # The expected values increases for allele frequencies
+#' # close to 0 (or 1)
+#' p = c(0.01, 0.99)
+#' s = sum(1/p)
+#' mu = ELRH(p, deltaHP)
+#' mu.eq = (0.5*s-(L+1)/4)*f^2+(L-1)/2*f+(L+3)/4
+#' stopifnot(mu == mu.eq)
+#' mu
 ELRH <- function(p, deltaHP, deltaHT = deltaHP){
   # Eq (1.3) in note:
   deltaHP%*%LRH(p)%*%t(deltaHT)
