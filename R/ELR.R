@@ -38,6 +38,6 @@
 #' mu
 ELRH <- function(p, deltaHP, deltaHT = deltaHP){
   # Eq (1.3) in note:
-  deltaHP%*%LRH(p)%*%t(deltaHT)
+  c("E(LR(HP;HT))" = as.double(deltaHP%*%LRH(p)%*%t(deltaHT)))
 }
 
