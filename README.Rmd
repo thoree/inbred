@@ -1,0 +1,32 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-"
+)
+```
+
+
+# The inbred library
+
+The expected likelihood ratio is calculated
+
+## Installation
+
+To get the lastest version, install from GitHub as follows:
+
+```{r, eval = FALSE}
+ # First install devtools if needed
+if(!require(devtools)) install.packages("devtools")
+
+# Install mut2 from GitHub
+devtools::install_github("thoree/inbred")
+```
+
+   
