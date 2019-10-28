@@ -92,8 +92,8 @@ var.1 = mu2 - mu5^2
 
 # Next, check using Eq (1.5) of note
 s1 = sum(1/p)
-h883 = s1/4+(3/4)*L
-h888 = (5*L+3)/8 + (1/16)*(s1-L)
+h883 = (3*L+s1)/4
+h888 = (5*L+3)/8 + (s1-L)/16
 var.2 = deltaHT[3]*h883 + deltaHT[8]*h888 -mu5^2
 abs(var.1-var.2) < 10^(-15)
 
