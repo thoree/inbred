@@ -12,9 +12,12 @@
 #' @param Delta Double vector of length 9 summing to unity
 #' @param DeltaMatrix Double 9x9 matrix of two locus identity coefficients
 #' @export
-#' @return A list with two elements: the likelihoods assuming independence and
-#' the likelihoods for the pairs. If there is an odd number of markers,
-#' the last marker is omitted for the  elements of the list.
+#' @return The likelihoods for
+#' pairs of markers. If there is an odd number of markers,
+#' the last marker is omitted.
+#' @details The implementation is based on conditioning on IBD states at two
+#' linked loci. See `inbred::likPairsPed` for an implementation based `ped-suite` input.
+#' @seealso `ribd::condensedIdentity` and `ribd::twoLocusIdentity`.`
 #' @examples
 #' library(pedtools)
 #' library(ribd)
@@ -41,45 +44,20 @@
 #' rho = 0.01
 #' Delta2 = twoLocusIdentity(H1, c(4,5), rho)
 #' lik1 = likPairs(a,b,cc,d, pa, pb, pc, pd, Delta = Delta1, DeltaMatrix = Delta2)
-#' numerator = prod(lik1[[2]])
+#' numerator = prod(lik1)
 #' Delta1 = condensedIdentity(H1, c(1, 2))
 #' rho = 0.5
 #' Delta2 = matrix(0, ncol = 9, nrow = 9); Delta2[9,9] = 1
 #' lik2 = likPairs(a,b,cc,d, pa, pb, pc, pd, Delta = Delta1, DeltaMatrix = Delta2)
-#' denominator = prod(lik2[[2]])
+#' denominator = prod(lik2)
 #' numerator/denominator
-#'
-#' #Alternative if pedigree is defined in `pedtools`, input can be extracted
-#' ids = c(4,5)
-#' nM = nMarkers(H1)
-#' g = selectMarkers(H1, 1:nM)
-#' odd = seq(1, nM*2, by = 2)
-#' even = seq(2, nM*2,by = 2)
-#' g2 = getAlleles(g)
-#' a = g2[ids[1], odd]
-#' b = g2[ids[1], even]
-#' cc = g2[ids[2], odd]
-#' d = g2[ids[2], even]
-#' loci = getLocusAttributes(g)
-#' pa = p[as.integer(a)] # assumes integer alleles
-#' pb = p[as.integer(b)]
-#' pc = p[as.integer(cc)]
-#' pd = p[as.integer(d)]
-#'
-likPairs = function(a, b, cc, d, pa, pb, pc, pd, Delta, DeltaMatrix = NULL){
-  # Checks only first argument for now,MOVE UP
-  if(!is.null(DeltaMatrix) & length(a) %% 2 !=0)
-    stop("Must be an even no of markers when DeltaMatrix is specified")
+
+likPairs = function(a, b, cc, d, pa, pb, pc, pd, Delta, DeltaMatrix){
    nPairs = floor(length(a)/2)
-   liksIndependent = likJ(a, b, cc, d, pa, pb, pc, pd, Delta)
    All = likJStates(a, b, cc, d, pa, pb, pc, pd)
    likEachPair = rep(NA, nPairs)
-
-   if(!is.null(DeltaMatrix)){ # sequential pairs of linked markers
-     for (s in 1:nPairs)
+   for (s in 1:nPairs)
        likEachPair[s] = t(All[,2*s-1]) %*% DeltaMatrix %*% All[,2*s]
-   }
-
-   list("independentLikelihoods" = liksIndependent, "likelihoodPairs" = likEachPair)
+   likEachPair
 }
 

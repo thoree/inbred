@@ -1,15 +1,26 @@
 ---
 title: "Likelihoods for pairs of markers"
 author: "Thore"
-date: "16 11 2019"
-output: pdf_document
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    number_sections: true
+  html_document:
+    df_print: paged
+    number_sections: true
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Likelihoods
+# Objectives
+
+We would like to estimate Jacquard coefficients and calculate LR's for linked markers in linkage disequilibrium. Based on this, the impact of linkage and LD can be evaluated. This ambitious goal is
+simplified by considering pairs of SNP-markers for pairs of individuals.
+The pairs of markers are assumed independent. 
+
+# Likelihoods and implementation assuming LE
 
 
 The likelihood of two individuals being related according to $\boldsymbol{\Delta}$, given their genotypes $G=(g_{1},g_{2})$ at a marker is obtained by conditioning on the Jacquard state:
@@ -34,7 +45,8 @@ L(\boldsymbol{\Delta},\boldsymbol{\Delta}^{(2)}  \mid G)
 \label{eq:DeltaLik2}
 \end{equation}
 
-If we assume LE, 
+Furthermore,if we assume LE
+
 \begin{equation}
 L(\boldsymbol{\Delta},\boldsymbol{\Delta}^{(2)}  \mid G)
 =\sum_{s,t=1}^9 \Delta^{(2)}_{s,t} P(g_1\mid J_{s})P(g_2\mid J_{t}).
@@ -44,8 +56,8 @@ L(\boldsymbol{\Delta},\boldsymbol{\Delta}^{(2)}  \mid G)
 This can be written on matrix form, convenient for implementation. To this end,
 we let
 \begin{align*}
-u &=  \left( P(g_1\mid J_1), \ldots, P(g_1\mid J_9) \right)\\
-v &=  \left( P(g_2\mid J_1), \ldots, P(g_2\mid J_9) \right)
+u &= u(\boldsymbol{\Delta}) = \left( P(g_1\mid J_1), \ldots, P(g_1\mid J_9) \right)\\
+v &= v(\boldsymbol{\Delta}) = \left( P(g_2\mid J_1), \ldots, P(g_2\mid J_9) \right)
 \label{eq:DeltaLik4}
 \end{align*}
 
@@ -56,14 +68,17 @@ L(\boldsymbol{\Delta},\boldsymbol{\Delta}^{(2)}  \mid G)
 \label{eq:DeltaLik5}
 \end{equation}
 
+## Implementation and examples
 The numerical values in the below example is confirmed
-by FamLink http://famlink.se/f_index.html and Merlin.
+by FamLink http://famlink.se/f_index.html, Merlin and
+`pedprobr::likelihood`.
 First, the numerator hypothesis is plotted
 
 ```{r, eval=TRUE, echo = TRUE}
 library(inbred) # https://github.com/thoree/inbred
 library(pedtools)
 library(ribd)
+library(pedprobr)
 p = c(0.4,  0.6)
 a  = c(1, 1, 1, 1)
 b  = c(2, 2, 1, 2)
@@ -84,43 +99,149 @@ plot(H1,m, skip.empty.genotypes = TRUE, shaded = typedMembers(H1))
 ```
 
 Next, the likelihood ratio is plotted as a function of the recombination rate
-in [0,0.1]
+in [0,0.5]
 
 ```{r, eval = TRUE, echo = TRUE, cache = T}
 Delta2 = matrix(0, ncol = 9, nrow = 9); Delta2[9,9] = 1
 Delta1 = ribd::condensedIdentity(H1, c(4,5))
 lik2 = likPairs(a,b,cc,d, pa, pb, pc, pd, Delta = Delta1, DeltaMatrix = Delta2)
-denominator = prod(lik2[[2]])
+denominator = prod(lik2)
 rho = seq(0, 0.5, length = 100)
 LRs = rep(NA, 100)
 Delta1 = ribd::condensedIdentity(H1, c(1, 2))
 for (i in 1:100){
   Delta2 = twoLocusIdentity(H1, c(4,5), rho[i])
   lik1 = likPairs(a,b,cc,d, pa, pb, pc, pd, Delta = Delta1, DeltaMatrix = Delta2)
-  LRs[i] = prod(lik1[[2]])/denominator
+  LRs[i] = prod(lik1)/denominator
 }
 plot(rho, LRs, type = "l", xlab = "rho", ylab = "LR")
 ```
 
 
+### Function with `ped suite` input
 
 
-If the pedigree is defined in `pedtools` as above, the input can be extracted:
 
-```{r, eval = TRUE, echo = TRUE}
-ids = c(4,5)
-nM = nMarkers(H1)
-g = selectMarkers(H1, 1:nM)
-odd = seq(1, nM*2, by = 2)
-even = seq(2, nM*2,by = 2)
-g2 = getAlleles(g)
-a = g2[ids[1], odd]
-b = g2[ids[1], even]
-cc = g2[ids[2], odd]
-d = g2[ids[2], even]
-pa = p[as.integer(a)] # assumes integer alleles
-pb = p[as.integer(b)]
-pc = p[as.integer(cc)]
-pd = p[as.integer(d)]
+We check against `pedprobr::likelihood`:
+
+```{r, eval = TRUE, echo =TRUE}
+rho = 0.01
+l1 = likelihood(H1, m[[1]], m[[2]], theta = rho)*
+     likelihood(H1, m[[3]], m[[4]], theta = rho)
+Delta2 = twoLocusIdentity(H1, c(4,5), rho)
+l2 = likPairsPed(H1, c(4,5),  Delta = Delta1, DeltaMatrix = Delta2)
+l2 = prod(l2)
+abs(l1-l2) < 1e-12
 ```
 
+
+
+Next follows a case with inbreeding. 
+First a plot
+
+```{r, eval = TRUE, echo = TRUE}
+p = c(0.4,  0.6)
+als = 1:length(p)
+set.seed(17)
+a  = sample(als, 2, rep = T)
+b  = sample(als, 2, rep = T)
+cc = sample(als, 2, rep = T)
+d  = sample(als, 2, rep = T)
+pa = p[a]
+pb = p[b]
+pc = p[cc]
+pd = p[d]
+H1 = fullSibMating(1)
+
+m = list()
+for (i in 1:length(a))
+   m[[i]] = marker(H1, afreq = p, alleles = als,
+            "5" = c(a[i], b[i]), "6" = c(cc[i], d[i]) )
+H1 = setMarkers(H1, m)
+plot(H1,m, skip.empty.genotypes = TRUE, shaded = typedMembers(H1))
+```
+
+Next, checking:
+
+
+```{r, eval = TRUE, echo =TRUE}
+rho = 0.01
+l1 = likelihood(H1, m[[1]], m[[2]], theta = rho)
+ids = leaves(H1)
+Delta1 = condensedIdentity(H1, ids)
+Delta2 = twoLocusIdentity(H1, ids, rho)
+l2 = likPairsPed(H1, ids, Delta1, Delta2)
+abs(l1-l2) < 1e-12
+```
+
+To see that the tailored implementation is, as it should be,  quicker that
+the general `pedprobr::likelihood`, one can run
+
+
+```{r, eval = TRUE, echo = TRUE, cache = TRUE}
+nM = 2
+foo1 = function(nM = 100, H1, m , rho ){
+  m[[1]][5:6,] = 1
+  m[[1]][5:6,] = 1
+  for ( i in 1:nM)
+    l = likelihood(H1, m[[1]], m[[2]], theta = rho)
+  l
+}
+foo2 = function(nM = 100, H1, Delta1, Delta2){
+  m = list()
+  for (i in 1:nM)
+    m[[i]] = marker(H1, afreq = p, alleles = als,
+              "5" = c(1, 1), "6" = c(1,1) )
+  H1 = setMarkers(H1, m)
+  l = likPairsPed(H1, c(5,6), Delta1, Delta2)
+  l
+}
+system.time(foo1(nM = nM, H1, m, rho))
+system.time(foo2(nM = nM, H1, Delta1, Delta2))
+```
+
+
+# Dealing with LD
+
+We continue to consider pairs of independent markers.
+We assume that allele frequencies are known.
+
+## A database of haplotype counts is available
+
+Let $c_{ij},\; i,j=1,2,\; C= \sum_{i,j=1,2} c_{i,j}$ denote the counts  of the corresponding haplotypes
+$[i-j]$ and the total number. If we trust the database and all haplotypes are observed,
+we can use the haplotype frequencies $h_{ij} =c_{ij}/C$. For STR-markers, with many alleles, the direct approach based on the database is not likely to work since chances are that some haplotypes will not be observed or at least not reliably estimated. Alternatively,
+we can use the lambda-model described in Ch 4 and 6 of Egeland, Kling and Mostad. 
+This model is based on a Dirichlet prior for the haplotype frequencies.
+The counts are multinomial given the haplotype frequencies. This leads to (using that
+the Dirichlet and the Multinomial is a *conjugate* pair)
+haplotype frequencies
+$$
+h_{ij} = \frac{c_{ij}+\lambda p_{ij}}{C+\lambda}
+$$
+
+where $p_{ij}$ are the haplotype frequencies LE would give. We see that large values of $\lambda$
+gives LE estimates while $\lambda$ close to 0 produces the count, database, estimate.
+At any rate, below we assume $h_{ij}$ are available.
+
+It would be nice to express the likelihood parametrically, say as a function of recombination rate and some measure of LD: recall that our goal is 
+to study how $LR(\rho, \lambda)$ or some estimate $\widehat{\theta}(\rho, \lambda)$ depend on linkage and LD,
+as measured by $\lambda$ in the previous estimate.
+
+
+## Likelihood with LD
+
+Consider once more
+
+\begin{equation}
+L(\boldsymbol{\Delta},\boldsymbol{\Delta}^{(2)}  \mid G)
+=\sum_{s,t=1}^9 \Delta^{(2)}_{s,t} P(G\mid J^{(2)}_{s,t}).
+\end{equation}
+
+We need to calculate the 91 terms (reduced to 9 terms if inbreeding is ignored,
+perhaps a wise simplification not pursued now)
+$P(G\mid J^{(2)}_{s,t})$. Consider the first term.
+Let $I_1=1$ if all alleles of the first marker are the same, say $a$.
+Similarly, $I_2=1$ if all alleles of the second marker are the same, say $b$.
+Then $P(G\mid J^{(2)}_{1,1})=I_1I_2 h_{a,b}$. Simillar expression are needed for the remaining terms.
+The function `inbred::likJ` can be used, perhaps be extended to find all terms.
