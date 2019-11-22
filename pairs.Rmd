@@ -17,8 +17,8 @@ knitr::opts_chunk$set(echo = TRUE)
 # Objectives
 
 We would like to estimate Jacquard coefficients and calculate LR's for linked markers in linkage disequilibrium. Based on this, the impact of linkage and LD can be evaluated. This ambitious goal is
-simplified by considering pairs of SNP-markers for pairs of individuals.
-The pairs of markers are assumed independent. 
+simplified by considering pairs independent markers for pairs of individuals.
+ 
 
 # Likelihoods and implementation assuming LE
 
@@ -36,7 +36,10 @@ function coded by Magnus.
 The purpose of this section is to describe the extension to
 pairs of linked markers. The further extension to independent pairs of such pairs of markers is trivial.
 Let $J^{(2)}$ denote the 9 by 9 matrix of identity states of a pair of pedigree members, for a given recombination rate. Furthermore,
-$\Delta^{(2)}$ is the 9*9 matrix of two-locus condensed identity coefficients, for a given recombination rate. Now $G$ contains marker data for both loci.
+$\Delta^{(2)}$ is the 9*9 matrix of two-locus condensed identity coefficients, for a given recombination rate. The STR-marker data for
+the first individual is $g_1 =(g_{11}, g_{12})=(a_1/b_1, a_2/b_2)$
+and for the second $g_2 =(g_{21}, g_{22})=(c_1/d_1, c_2/d_2)$.
+Now $G=(g_1,g_2)$ contains marker data for both loci.
 By conditionining, the likelihood may be written
 
 \begin{equation}
@@ -45,19 +48,20 @@ L(\boldsymbol{\Delta},\boldsymbol{\Delta}^{(2)}  \mid G)
 \label{eq:DeltaLik2}
 \end{equation}
 
-Furthermore,if we assume LE
-
-\begin{equation}
-L(\boldsymbol{\Delta},\boldsymbol{\Delta}^{(2)}  \mid G)
-=\sum_{s,t=1}^9 \Delta^{(2)}_{s,t} P(g_1\mid J_{s})P(g_2\mid J_{t}).
-\label{eq:DeltaLik3}
-\end{equation}
+Note that $\boldsymbol{\Delta}^{(2)}$ 
+can be calculated exactly numerically as explained below. We therefore consider,
+\begin{align*}
+P(G\mid J^{(2)}_{s,t})&= P(g_1, g_2 \mid J^{(2)}_{s,t}) 
+=^{LE} P(g_{11},g_{21} \mid J_{s}) P(g_{12},g_{22} \mid J_{t})
+\end{align*}
+where the LE assumption is indicated
+(in the next section we consider LD).
 
 This can be written on matrix form, convenient for implementation. To this end,
 we let
 \begin{align*}
-u &= u(\boldsymbol{\Delta}) = \left( P(g_1\mid J_1), \ldots, P(g_1\mid J_9) \right)\\
-v &= v(\boldsymbol{\Delta}) = \left( P(g_2\mid J_1), \ldots, P(g_2\mid J_9) \right)
+u &= \left( P(g_{11},g_{21}\mid J_1), \ldots, P(g_{11},g_{21}\mid J_9) \right)\\
+v &= \left( P(g_{12},g_{22}\mid J_1), \ldots, P(g_{12},g_{22}\mid J_9) \right)
 \label{eq:DeltaLik4}
 \end{align*}
 
@@ -68,7 +72,12 @@ L(\boldsymbol{\Delta},\boldsymbol{\Delta}^{(2)}  \mid G)
 \label{eq:DeltaLik5}
 \end{equation}
 
+
+
+
+
 ## Implementation and examples
+
 The numerical values in the below example is confirmed
 by FamLink http://famlink.se/f_index.html, Merlin and
 `pedprobr::likelihood`.
@@ -140,13 +149,17 @@ Next follows a case with inbreeding.
 First a plot
 
 ```{r, eval = TRUE, echo = TRUE}
-p = c(0.4,  0.6)
+p = c(0.99,  0.01)
 als = 1:length(p)
 set.seed(17)
 a  = sample(als, 2, rep = T)
 b  = sample(als, 2, rep = T)
 cc = sample(als, 2, rep = T)
 d  = sample(als, 2, rep = T)
+a  = c(1,1)
+b  = c(1,1)
+cc = c(1,1)
+d  = c(1,1)
 pa = p[a]
 pb = p[b]
 pc = p[cc]
@@ -165,13 +178,59 @@ Next, checking:
 
 
 ```{r, eval = TRUE, echo =TRUE}
-rho = 0.01
+rho = 0.5
 l1 = likelihood(H1, m[[1]], m[[2]], theta = rho)
 ids = leaves(H1)
 Delta1 = condensedIdentity(H1, ids)
 Delta2 = twoLocusIdentity(H1, ids, rho)
 l2 = likPairsPed(H1, ids, Delta1, Delta2)
 abs(l1-l2) < 1e-12
+```
+
+
+
+
+```{r, eval = FALSE, echo = FALSE}
+# *Ask Magnus*: founder inbreeding is ignored in the likelihood
+# function for two markers and  in `twoMarkerDistribution`
+# as the model is then not fully specified. This, i.e., that founder inbreeding is ignored,  is verified below.
+# However, `twoLocusIdentity` obeys founder inbreeding
+# and the likelihood can be calculated using
+# `likPairsPed`: something strange here?!
+# OK: Only defined for f=0,1
+founderInbreeding(H1, c(1,2)) = 1
+l.1 = likelihood(H1, m[[1]], m[[2]], theta = rho)
+founderInbreeding(H1, c(1,2)) = 0
+l.0 = likelihood(H1, m[[1]], m[[2]], theta = rho)
+all(l.0 == l.1)
+
+m[[1]][5:6,]  = 0
+l.0 = twoMarkerDistribution(H1, 5, m[[1]], m[[2]], 
+                            theta = rho, verbose = F )
+founderInbreeding(H1, c(1,2)) = 1
+l.1 = twoMarkerDistribution(H1, 5, m[[1]], m[[2]], 
+                            theta = rho, verbose = F )
+all(l.0 == l.1)
+
+ids = leaves(H1)
+Delta2.1 = twoLocusIdentity(H1, ids, rho)
+founderInbreeding(H1, c(1,2)) = 0
+Delta2.0 =  twoLocusIdentity(H1, ids, rho)
+max(abs(Delta2.1 -Delta2.0) )
+# Consider next the example in Figure 15 of MDV's ribd paper
+x1 = nuclearPed(1, sex = 2) 
+x1 = addChildren(x1, father = 1, mother =3, sex = 2, nch = 1)
+x1 = addChildren(x1, mother = 4, sex = 2, nch = 1)
+x1 = addChildren(x1, mother = 4, sex = 2, nch = 1)
+Delta2.1 = twoLocusIdentity(x1, c(6,8), rho = 0.1)
+x2 = nuclearPed(2, sex = c(1,2))
+x2 = addChildren(x2, father = 3, mother = 4, nch = 1, sex = 2)
+x2 = addChildren(x2, mother = 5, sex = 2, nch = 1)
+x2 = addChildren(x2, mother = 5, sex = 2, nch = 1)
+Delta2.2 = twoLocusIdentity(x2, leaves(x2), rho = 0.1)
+x3 = swapSex(halfSibPed(), c(1,4,5))
+founderInbreeding(x3,3) = 0.25
+Delta2.3 = twoLocusIdentity(x3, leaves(x3), rho = 0.1)
 ```
 
 To see that the tailored implementation is, as it should be,  quicker that
@@ -232,16 +291,96 @@ as measured by $\lambda$ in the previous estimate.
 ## Likelihood with LD
 
 Consider once more
-
-\begin{equation}
-L(\boldsymbol{\Delta},\boldsymbol{\Delta}^{(2)}  \mid G)
-=\sum_{s,t=1}^9 \Delta^{(2)}_{s,t} P(G\mid J^{(2)}_{s,t}).
-\end{equation}
+$$
+A(s,t) = P(G\mid J^{(2)}_{s,t})= P(g_1, g_2 \mid J^{(2)}_{s,t}) =
+P(g_1 \mid J^{(2)}_{s,t}, g_2) P(g_2 \mid J^{(2)}_{s,t})
+$$
+In presence of LD we cannot consider the loci independently even
+if we have complete information on IBD status.
 
 We need to calculate the 91 terms (reduced to 9 terms if inbreeding is ignored,
-perhaps a wise simplification not pursued now)
-$P(G\mid J^{(2)}_{s,t})$. Consider the first term.
+perhaps a wise simplification not pursued now) of the matrix $A$.
+
+### Example
+
+In search for a general formula of practical implementation, we consider
+an example. Assume that the individuals are homozygous for $a$ for the first marker and homozygous for $b$ for the second. In this case the number of
+possibilities to consider is reduced since  $A(s,t) = A(t,s)$.
+
+
+```{r, eval = T, echo = TRUE}
+A = matrix(NA, ncol = 9, nrow = 9)
+h = 0.1 # P(haplotype ab)
+A[1,1] = h
+A[1,2] =  h^2
+A[1,3] = A[3,1] = h^2
+A[2,2] = h^2
+A[2,3] = A[3,2] 
+```
+
+## What next
+
+Consider only linkage first
+1. More examples, plot as function of recombination rate.
+2. Simulate data in Merlin. Calculate LR in Merlin.
+Read data into R.
+How well does the pairwise approximation do?
+3. Expand code to allow for different recombination rates between markers.
+
+Consider next LD.
+
+4. Complete above example. Ignore inbreeding.
+Check for LE.
+5. Try to implement with LD.
+The code in the function `likJ` can determine the "case".
+Can we based on this get the general implementaton.
+
+Other software
+
+6. Experiment with FamLink
+7. Experiment with Merlin
+
+## Obsolete?
+
+Consider the first term.
+
 Let $I_1=1$ if all alleles of the first marker are the same, say $a$.
 Similarly, $I_2=1$ if all alleles of the second marker are the same, say $b$.
 Then $P(G\mid J^{(2)}_{1,1})=I_1I_2 h_{a,b}$. Simillar expression are needed for the remaining terms.
 The function `inbred::likJ` can be used, perhaps be extended to find all terms.
+
+Try likelihood for first Jacquard state.
+*Magnus*: likelihood with selfing
+```{r, eval = TRUE, echo =TRUE}
+x = selfingPed(2, sex = 1)
+p = c(0.4, 0.6)
+als = 1:length(p)
+m1 = marker(x, "2" = 1, "3" = 1, alleles = als, afreq = p)
+m2 = marker(x, "2" = 1, "3" = 1, alleles = als, afreq = p)
+x = setMarkers(x, list(m1, m2))
+founderInbreeding(x,1) = 1
+rho = 0.5
+Delta2 = twoLocusIdentity(x, c(2,3), rho)
+Delta1 = condensedIdentity(x, c(2,3))
+likelihood(x, m1, m2, theta = rho)
+likPairsPed(x, c(2,3), Delta1, Delta2)
+```
+
+Another try
+
+
+```{r, eval = FALSE, echo = FALSE}
+# x = fullSibMating(20)
+# founderInbreeding(x,1) = 1
+# id = leaves(x)
+# p = c(0.4, 0.6)
+# als = 1:length(p)
+# m1 = marker(x, "9" = 1, "10" = 1, alleles = als, afreq = p)
+# m2 = marker(x, "9" = 1, "10" = 1, alleles = als, afreq = p)
+# x = setMarkers(x, list(m1, m2))
+# rho = 0.5
+# Delta2 = twoLocusIdentity(x, c(9,10), rho)
+# Delta1 = condensedIdentity(x, leaves(x))
+# likelihood(x, m1, m2, theta = rho)
+# likPairsPed(x, c(9,10), Delta1, Delta2)
+```
