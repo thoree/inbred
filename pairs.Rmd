@@ -1,6 +1,6 @@
 ---
 title: "Likelihoods for pairs of markers"
-author: "Thore"
+author: "Hilde and Thore"
 date: "`r Sys.Date()`"
 output:
   pdf_document:
@@ -50,10 +50,10 @@ L(\boldsymbol{\Delta},\boldsymbol{\Delta}^{(2)}  \mid G)
 
 Note that $\boldsymbol{\Delta}^{(2)}$ 
 can be calculated exactly numerically as explained below. We therefore consider,
-\begin{align*}
+\begin{align}
 P(G\mid J^{(2)}_{s,t})&= P(g_1, g_2 \mid J^{(2)}_{s,t}) 
 =^{LE} P(g_{11},g_{21} \mid J_{s}) P(g_{12},g_{22} \mid J_{t})
-\end{align*}
+\end{align}
 where the LE assumption is indicated
 (in the next section we consider LD).
 
@@ -298,17 +298,110 @@ $$
 In presence of LD we cannot consider the loci independently even
 if we have complete information on IBD status.
 
-We need to calculate the 91 terms (reduced to 9 terms if inbreeding is ignored,
-perhaps a wise simplification not pursued now) of the matrix $A$.
+We need to calculate the 91 terms  of the matrix $A$.
 
-### Example
+Hilde: Sett inn det du skrev "Define ...."
 
+### Example 1 
+
+Consider first unrelated individuals, but with markers in LD.
+Obviously, linkage is irrelevant in this case.
+Then Eq (2) simplifies to
+$$
+L(\boldsymbol{\Delta},\boldsymbol{\Delta}^{(2)}  \mid G) = P(g_1)P(g_2)
+$$
+Consider a pair of markers with haplotype frequencies 
+$h_{ij}$.  
+
+Let $I_{l}=1$ if and individual  is homozygous at marker $l=1,2$ and 0
+otherwise. Then for individual 1 (and similarly for individual 2)
+
+\begin{align*}
+P(g_i &= (a_1/b_1, a_2/b_2)) \\ &=  
+ I_1I_2h_{a_1,a_2}^2  \\ &+ 
+ 2(1-I_1)I_2h_{a_1,a_2}h_{b_1,a_2} \\ &+
+ 2I_1(1-I_2)h_{a_1,b_1}h_{a_1,b_2} \\&+
+ 2(1-I_1)(1-I_2)(h_{a_1,a_2}h_{b_1,b_2}+h_{a_1,b_2}h_{b_2, a_2}).
+\end{align*}
+
+
+
+Below we show that the probabilities add up to one as they should for a pair
+of SNP-markers. Next the function for given marker data is
+defined and tested for LE and LE:
+
+```{r, eval =T, echo =T}
+# Calculate P(g = (a1/b1,a2/b2))
+pG = function(a1, a2, b1, b2, h){
+# a1 First allele, first marker
+# a2 First allele, second marker
+# b1 Second allele, first marker
+# b2 Second allele first marker
+# h matrix of haplotype probabilities
+  I1 = a1 == b1
+  I2 = a2 == b2
+  q11 = I1*I2*h[a1,a2]^2 
+  q21 = 2*(1-I1)*I2*(h[a1,a2]*h[b1,a2])
+  q12 = 2*I1*(1-I2)*h[a1,a2]*h[a1,b2]
+  q22 = 2*(1-I1)*(1-I2)*(h[a1,a2]*h[b1,b2]+h[a1,b2]*h[b2, a2])
+  q11 + q21 + q12 + q22
+}
+
+p = c(0.4, 0.6); q = c(0.5, 0.5)
+h = p%o%q #Haploptype frequencies with LE
+# abs(pG(1, 1, 1, 1, h) - p[1]^2*q[1]^2) < 1e-15
+# abs(pG(1, 1, 2, 1, h) - 2*p[1]*p[2]*q[1]^2) < 1e-15
+# abs(pG(1, 1, 2, 2, h) - 2*p[1]*p[2]*2*q[1]*q[2]) < 1e-15
+# All possibilities 
+S = rbind( c(1, 1, 1, 1),
+           c(1, 2, 1, 1),
+           c(2, 2, 1, 1),
+           c(1, 1, 1, 2),
+           c(1, 2, 1, 2),
+           c(2, 2, 1, 2),
+           c(1, 1, 2, 2),
+           c(1, 2, 2, 2),
+           c(2, 2, 2, 2)
+           )
+prob1 = apply(S, 1, function(x,h) pG(x[1], x[3], x[2], x[4],h), h)
+abs(sum(prob1)-1) < 1e-15
+h = diag(c(0.4, 0.6)) # Strong LD
+prob2 = apply(S, 1, function(x,h) pG(x[1], x[3], x[2], x[4],h), h)
+h = matrix(c(0.0, 0.2,0.8,0.0), ncol = 2, nrow = 2) # Strong LD
+prob3 = apply(S, 1, function(x,h) pG(x[1], x[3], x[2], x[4],h), h)
+```
+  
+
+Assume next we have haplotype data
+
+```{r, eval = TRUE, echo = TRUE}
+# Generata haplotypes for triallelic marker according to lambda model
+set.seed(17)
+dat = matrix(ncol = 3, nrow = 3, sample(20:50, 9, rep = T))
+C = sum(dat)
+freq1 = c(0.1,0.5, 0.4); freq2 = c(0.2, 0.3,0.5)
+p = freq1%o%freq2
+lambdas = c(0, seq(1, 10000, by = 10))
+probs = rep(NA, length(lambdas))
+i = 0
+for (lambda in lambdas){
+  i = i + 1 
+  h = (dat +lambda*p)/(C+lambda)
+  probs[i] = pG(1,1,1,1,h)
+}
+plot(lambdas, log(probs), type = "l")
+freq1[1]^2*freq2[1]^2 -probs[length(probs)]# LE prob
+```
+  
+
+### Example 2
+*Barely started*
 In search for a general formula of practical implementation, we consider
 an example. Assume that the individuals are homozygous for $a$ for the first marker and homozygous for $b$ for the second. In this case the number of
 possibilities to consider is reduced since  $A(s,t) = A(t,s)$.
 
 
-```{r, eval = T, echo = TRUE}
+```{r, eval = F, echo = F}
 A = matrix(NA, ncol = 9, nrow = 9)
 h = 0.1 # P(haplotype ab)
 A[1,1] = h
@@ -321,6 +414,7 @@ A[2,3] = A[3,2]
 ## What next
 
 Consider only linkage first
+
 1. More examples, plot as function of recombination rate.
 2. Simulate data in Merlin. Calculate LR in Merlin.
 Read data into R.
