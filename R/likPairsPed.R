@@ -6,8 +6,7 @@
 #' @param Delta Double vector of length 9 summing to unity
 #' @param DeltaMatrix Double 9x9 matrix of two locus identity coefficients
 #' @export
-#' @return A list with two elements: the likelihoods assuming independence and
-#' the likelihoods for the pairs. If there is an odd number of markers,
+#' @return The likelihood for the pairs. If there is an odd number of markers,
 #' the last marker is omitted for the  elements of the list.
 #' @details The implementation is based on conditioning on IBD states at two
 #' linked loci. Currently, the recombination rate for each pair is assumed to be the same.

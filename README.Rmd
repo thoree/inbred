@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 
 # The inbred library
 
-The expected likelihood ratio is calculated
+Likelihoods and  likelihood ratio statistics in presence of inbreeding
 
 ## Installation
 
@@ -28,5 +28,6 @@ if(!require(devtools)) install.packages("devtools")
 # Install inbred from GitHub
 devtools::install_github("thoree/inbred")
 ```
+
 
    

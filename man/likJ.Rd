@@ -40,7 +40,7 @@ pa = p[a]
 pb = p[b]
 pc = p[cc]
 pd = p[d]
-Delta = c(0, 0, 0, 0, 0, 0, 1,0, 0) #unrelated
+Delta = c(0, 0, 0, 0, 0, 0, 1,0, 0)
 l2 = likJ(a,b,cc,d, pa,pb,pc,pd, Delta = Delta)
 sum(l2) == 1
 }

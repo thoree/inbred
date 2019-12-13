@@ -5,7 +5,7 @@
 \title{Likelihood for two Possibly Inbred Individuals as a function of
 the Condensed 'Jacquard' Coefficients}
 \usage{
-likPairs(a, b, cc, d, pa, pb, pc, pd, Delta, DeltaMatrix = NULL)
+likPairs(a, b, cc, d, pa, pb, pc, pd, Delta, DeltaMatrix)
 }
 \arguments{
 \item{a}{Vector of positive integers (allele 1 of individual 1)}
@@ -29,15 +29,21 @@ likPairs(a, b, cc, d, pa, pb, pc, pd, Delta, DeltaMatrix = NULL)
 \item{DeltaMatrix}{Double 9x9 matrix of two locus identity coefficients}
 }
 \value{
-A list with two elements: the likelihoods assuming independence and
-the likelihoods for the pairs. If there is an odd number of markers,
-the last marker is omitted for the  elements of the list.
+The likelihoods for
+pairs of markers. If there is an odd number of markers,
+the last marker is omitted.
 }
 \description{
 Likelihood for two Possibly Inbred Individuals as a function of
 the Condensed 'Jacquard' Coefficients
 }
+\details{
+The implementation is based on conditioning on IBD states at two
+linked loci. See `inbred::likPairsPed` for an implementation based `ped-suite` input.
+}
 \examples{
+library(pedtools)
+library(ribd)
 a  = c(1, 1, 1, 1)
 b  = c(2, 2, 1, 2)
 cc = c(1, 2, 2, 2)
@@ -61,29 +67,14 @@ Delta1 = condensedIdentity(H1, c(4,5))
 rho = 0.01
 Delta2 = twoLocusIdentity(H1, c(4,5), rho)
 lik1 = likPairs(a,b,cc,d, pa, pb, pc, pd, Delta = Delta1, DeltaMatrix = Delta2)
-numerator = prod(lik1[[2]])
+numerator = prod(lik1)
 Delta1 = condensedIdentity(H1, c(1, 2))
 rho = 0.5
 Delta2 = matrix(0, ncol = 9, nrow = 9); Delta2[9,9] = 1
 lik2 = likPairs(a,b,cc,d, pa, pb, pc, pd, Delta = Delta1, DeltaMatrix = Delta2)
-denominator = prod(lik2[[2]])
+denominator = prod(lik2)
 numerator/denominator
-
-#Alternative if pedigree is defined in `pedtools`, input can be extracted
-ids = c(4,5)
-nM = nMarkers(H1)
-g = selectMarkers(H1, 1:nM)
-odd = seq(1, nM*2, by = 2)
-even = seq(2, nM*2,by = 2)
-g2 = getAlleles(g)
-a = g2[ids[1], odd]
-b = g2[ids[1], even]
-cc = g2[ids[2], odd]
-d = g2[ids[2], even]
-loci = getLocusAttributes(g)
-pa = p[as.integer(a)] # assumes interger alleles
-pb = p[as.integer(b)]
-pc = p[as.integer(cc)]
-pd = p[as.integer(d)]
-
+}
+\seealso{
+`ribd::condensedIdentity` and `ribd::twoLocusIdentity`.`
 }

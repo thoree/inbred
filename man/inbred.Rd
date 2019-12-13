@@ -3,7 +3,6 @@
 \docType{package}
 \name{inbred}
 \alias{inbred}
-\alias{inbred-package}
 \title{Inbred package}
 \description{
 Contains one function to find E(LR(HP;HT))

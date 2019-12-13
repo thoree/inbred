@@ -17,8 +17,7 @@ likPairsPed(x, ids, Delta, DeltaMatrix)
 \item{DeltaMatrix}{Double 9x9 matrix of two locus identity coefficients}
 }
 \value{
-A list with two elements: the likelihoods assuming independence and
-the likelihoods for the pairs. If there is an odd number of markers,
+The likelihood for the pairs. If there is an odd number of markers,
 the last marker is omitted for the  elements of the list.
 }
 \description{
