@@ -3,7 +3,7 @@
 \docType{data}
 \name{dbX12}
 \alias{dbX12}
-\title{Argentinian X12 database}
+\title{Allele frequency databases}
 \description{
 The database contains frequencies for 12 X-chromosome STRs included in
 `Investigator Argus X-12`. This is based on an Argentinian sample.

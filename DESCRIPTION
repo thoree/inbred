@@ -8,4 +8,4 @@ Description: Finds expected value of LR and perhaps more for inbred pairs.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.0.1
+RoxygenNote: 7.0.2
