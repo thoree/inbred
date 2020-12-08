@@ -1,7 +1,7 @@
 #' Blind search table
 #'
-#' Calculate table for PO, SI, SI, FC and UN fro all pairs
-
+#' Calculate table ofLRs and posteriors for PO, SI, SI, FC and UN for all pairs
+#'
 #'
 #' @param x A `ped` object or a list of such.
 #' @param ids Either a vector with ID labels, or a data frame/matrix with two
@@ -15,6 +15,7 @@
 #' with flat prior. The  data frame with 6 columns: `ID1`, `ID2`, `N` (the number of markers
 #' with no missing alleles), `andLRs or posteriors.
 #' @author Thore Egeland
+#' @details A uniform priorisused so far
 #'
 #' @references
 #'
@@ -25,7 +26,7 @@
 #' ### Example 1
 #' library(forrel)
 #' x = nuclearPed(2)
-#' Simulate 200 equifrequent SNPs
+#' # Simulate 200 equifrequent SNPs
 #' x = markerSim(x, N = 200, alleles = 1:2, verbose = FALSE)
 #'
 #' # Parent offspring against unrelated
@@ -87,7 +88,7 @@ allPairsTable = function(x, ids = NULL, markers = NULL) {
     posteriors = data.frame(LRs[,1:3],
              t(apply(LRs[,-(1:3)], 1, function(x) x/sum(x))))
     colnames(posteriors)[-(1:3)] = c("Pr.PO", "Pr.SI",  "Pr.HS",
-                                     "Pr. FC", "Pr.UN")
+                                     "Pr.FC", "Pr.UN")
     list(LRs = LRs, posteriors = posteriors)
 }
 

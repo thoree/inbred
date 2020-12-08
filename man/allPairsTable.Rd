@@ -24,14 +24,17 @@ with flat prior. The  data frame with 6 columns: `ID1`, `ID2`, `N` (the number o
 with no missing alleles), `andLRs or posteriors.
 }
 \description{
-Calculate table for PO, SI, SI, FC and UN fro all pairs
+Calculate table ofLRs and posteriors for PO, SI, SI, FC and UN for all pairs
+}
+\details{
+A uniform priorisused so far
 }
 \examples{
 
 ### Example 1
 library(forrel)
 x = nuclearPed(2)
-Simulate 200 equifrequent SNPs
+# Simulate 200 equifrequent SNPs
 x = markerSim(x, N = 200, alleles = 1:2, verbose = FALSE)
 
 # Parent offspring against unrelated
