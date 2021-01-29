@@ -2,18 +2,18 @@
 % Please edit documentation in R/rankProfiles.R
 \name{rankProfiles}
 \alias{rankProfiles}
-\title{The possible profiles for a member of pedigree are probability ranked}
+\title{Ranking profiles of pedigree member}
 \usage{
 rankProfiles(x, id, markers = NULL, maxPerMarker = Inf, verbose = FALSE)
 }
 \arguments{
-\item{id}{Name of individual to be predicted.}
+\item{id}{Name of individual to be predicted}
 
-\item{maxPerMarker}{No of top candidates per marker, default all.}
+\item{maxPerMarker}{No of top candidates per marker, default all}
 
-\item{Names}{or indices of the markers to be included. By default, all markers.}
+\item{Names}{Namesor indices of the markers to be included. By default, all markers.}
 
-\item{A}{logical, by default TRUE.}
+\item{A}{logical, by default TRUE}
 }
 \value{
 A list with three components. The first, a data frame with profiles
@@ -22,12 +22,12 @@ gives equal probability to all possible profiles. Then follows the most likely p
 the second to most likely genotypes are given.
 }
 \description{
-The possible profiles for a member of pedigree are probability ranked
+Ranking profiles of pedigree member
 }
 \details{
 Markers are assumed independent. For each marker, the possible genotypes
 for `id` are evaluated and ranked according to how probable they are. It may be wise
-to try first with `maxPerMarker = 1` to limit computation time, particularly if mutations are modelled.
+to try first with `maxPerMarker = 1` to limit computation time, particularly if mutations are modeled.
 }
 \examples{
 library(pedprobr)

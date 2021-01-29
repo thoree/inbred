@@ -13,7 +13,7 @@ data(dbX12)
 \dontrun{
 library(pedtools, quietly = T)
 x = setMarkers(singleton(1), locusAttributes = dbX12)
-chrom(x, 1:length(db)) = "X"
+chrom(x, 1:length(dbX12)) = "X"
 x
 }
 }

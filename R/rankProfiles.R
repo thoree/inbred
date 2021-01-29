@@ -1,13 +1,13 @@
-#' The possible profiles for a member of pedigree are probability ranked
+#' Ranking profiles of pedigree member
 #'
-#' @param A `ped` object with attached markers.
-#' @param id Name of individual to be predicted.
-#' @param Names or indices of the markers to be included. By default, all markers.
-#' @param maxPerMarker No of top candidates per marker, default all.
-#' @param A logical, by default TRUE.
+#' @param A `ped` object with attached markers
+#' @param id Name of individual to be predicted
+#' @param Names Namesor indices of the markers to be included. By default, all markers.
+#' @param maxPerMarker No of top candidates per marker, default all
+#' @param A logical, by default TRUE
 #' @details Markers are assumed independent. For each marker, the possible genotypes
 #' for `id` are evaluated and ranked according to how probable they are. It may be wise
-#' to try first with `maxPerMarker = 1` to limit computation time, particularly if mutations are modelled.
+#' to try first with `maxPerMarker = 1` to limit computation time, particularly if mutations are modeled.
 #'
 #' @export
 #' @return A list with three components. The first, a data frame with profiles
