@@ -5,7 +5,6 @@
 #' @name dbX12
 #' @docType data
 #' @keywords X12
-#' @alias ghepBlind
 #' @references "X-chromosome data for 12 STRs:
 #' Towards an Argentinian database of forensic haplotype frequencies",
 #' Garcia et al., FSI: Gen, suppl., vol. 41, pp. e8-13, 2019. DOI: https://doi.org/10.1016/j.fsigen.2019.04.005

@@ -2,14 +2,14 @@
 % Please edit documentation in R/compareCI.R
 \name{compareCI}
 \alias{compareCI}
-\title{Compare bootstrap CI-s (nonparametric, parametric) and assymptotic}
+\title{Compare bootstrap CI-s (nonparametric and parametric bootstrap, and asymptotic)}
 \usage{
 compareCI(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL)
 }
 \arguments{
 \item{theta}{Double kappa0.}
 
-\item{x}{ped obects}
+\item{x}{ped object}
 
 \item{ids}{Id of pair}
 
@@ -30,10 +30,12 @@ library(forrel)
 library(pedprobr)
 x = halfSibPed(1)
 ids = c(4,5)
-n = 100
-N = 100
-B = 10
+ids = c(1,3)
+n = 100 #markers
+N = 2 #simulations
+B = 100 # bootstraps
 theta = 0.5
+theta = 1
 seed = 17
-compareCI(theta, x, ids, n, N, B, seed = seed)
+foo = compareCI(theta, x, ids, n, N, B, seed)
 }
