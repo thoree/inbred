@@ -40,6 +40,14 @@ x = markerSim(x, N = 200, alleles = 1:2, verbose = FALSE)
 # Parent offspring against unrelated
 tab1 = allPairsTable(x)
 
+### Example 2 X-markers
+library(pedtools, quietly = T)
+x = nuclearPed(2)
+x = setMarkers(x, locusAttributes = dbX12)
+chrom(x, 1:length(dbX12)) = "X"
+x = profileSim(x, N = 10)
+tab1 = allPairsTable(x[[1]])
+
 }
 \references{
 To appear
