@@ -9,15 +9,17 @@ compareCI(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL)
 \arguments{
 \item{theta}{Double kappa0.}
 
-\item{x}{ped object}
+\item{x}{ped object.}
 
-\item{ids}{Id of pair}
+\item{ids}{Id of pair.}
 
-\item{n}{Integer. No of markers}
+\item{n}{Integer. No of markers.}
 
-\item{N}{Integer. No of simulations}
+\item{N}{Integer. No of simulations.}
 
-\item{B}{Integer. No of bootstraps}
+\item{B}{Integer. No of bootstraps.}
+
+\item{seed}{Integer.}
 }
 \value{
 Returns table.
@@ -26,19 +28,25 @@ Returns table.
 The purpose is to compare confidence intervals based on nonparametric bootstrap,
 parametric bootstrap, and asymptotic. This is done for the simplest case: iid SNPs
 with frequency 0.5. We consider pairwise relationships and assume the individuals
-do not share two alleles IBD.
+do not share two alleles IBD. Percentile t, bca
 }
 \examples{
 library(forrel)
 library(pedprobr)
 x = halfSibPed(1)
 ids = c(4,5)
-ids = c(1,3)
+# ids = c(1,3)
 n = 100 #markers
 N = 2 #simulations
 B = 100 # bootstraps
 theta = 0.5
-theta = 1
+# theta = 1
 seed = 17
-foo = compareCI(theta, x, ids, n, N, B, seed)
+# Frequencies for bootstrap
+freq = list()
+for (i in 1:n){
+freq[[i]] =  list(alleles = 1:2, afreq = c(0.5, 0.5))
+}
+x = setMarkers(x, locusAttributes = freq)
+foo = compareCI(theta, x, ids,freqList, n, N, B, seed)
 }

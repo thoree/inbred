@@ -4,14 +4,17 @@
 #' The purpose is to compare confidence intervals based on nonparametric bootstrap,
 #' parametric bootstrap, and asymptotic. This is done for the simplest case: iid SNPs
 #' with frequency 0.5. We consider pairwise relationships and assume the individuals
-#' do not share two alleles IBD.
+#' do not share two alleles IBD. Percentile t, bca
 #'
 #' @param theta Double kappa0.
-#' @param n Integer. No of markers
-#' @param N Integer. No of simulations
-#' @param B Integer. No of bootstraps
-#' @param x ped object
-#' @param ids Id of pair
+#' @param x ped object.
+#' @param ids Id of pair.
+#' @param n Integer. No of markers.
+#' @param N Integer. No of simulations.
+#' @param B Integer. No of bootstraps.
+#' @param seed Integer.
+
+
 #' @return Returns table.
 #' @export
 #' @examples
@@ -19,14 +22,20 @@
 #' library(pedprobr)
 #' x = halfSibPed(1)
 #' ids = c(4,5)
-#' ids = c(1,3)
+#' # ids = c(1,3)
 #' n = 100 #markers
 #' N = 2 #simulations
 #' B = 100 # bootstraps
 #' theta = 0.5
-#' theta = 1
+#' # theta = 1
 #' seed = 17
-#' foo = compareCI(theta, x, ids, n, N, B, seed)
+#' # Frequencies for bootstrap
+#' freq = list()
+#' for (i in 1:n){
+#' freq[[i]] =  list(alleles = 1:2, afreq = c(0.5, 0.5))
+#' }
+#' x = setMarkers(x, locusAttributes = freq)
+#' foo = compareCI(theta, x, ids,freqList, n, N, B, seed)
 
 compareCI <- function(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL){
   # Find genotype probabilities
@@ -47,48 +56,48 @@ compareCI <- function(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL){
   CI = matrix(c("lower" = theta.MLE - 1.96*se,
                 "upper" = theta.MLE + 1.96*se), ncol = 2)
   inside = CI[,1] <= theta & CI[,2] >= theta
-
-  # Add point estimate and indicator for being in interval
-  CI.summary.MLE = data.frame(lower = pmax(CI[,1],0),
-                              upper = pmin(CI[,2], 1), theta.MLE, inside)
   coverage.MLE = sum(inside)/N
-
-  # Frequencies for bootstrap
-  freqList = list()
-  for (i in 1:n)
-    freqList[[i]] =  c("a" = 0.5, "b" = 0.5)
+  # Add point estimate and indicator for being in interval
+  MLE = data.frame(lower = pmax(CI[,1],0),
+                   upper = pmin(CI[,2], 1), theta.MLE, inside)
+  MLE.average = c(apply(MLE[,-4],2,mean), coverage =sum(inside)/N)
 
   # Parametric bootstrap
   CI.para = matrix(ncol = 2, nrow = N)
   theta.para = rep(NA, N)
   for (j in 1:N){
-    boot1 = ibdBootstrap(kappa = c(theta, 1-theta, 0), N = B,
-                         freqList = freqList, plot = F)
+    boot1 = ibdBootstrap(x,kappa = c(theta, 1-theta, 0),  N = B,
+                         plot = F)
     CI.para[j,] = quantile(boot1[,1], probs = c(0.025, 0.975))
     theta.para[j] = mean(boot1[,1])
   }
   inside = CI.para[,1] <= theta & round(CI.para[,2],6) >= theta
-  CI.summary.para = data.frame(lower = pmax(CI.para[,1],0),
-                              upper = pmin(CI.para[,2], 1), theta.para, inside)
   coverage.para = sum(inside)/N
+  parametric = data.frame(lower = pmax(CI.para[,1],0),
+                          upper = pmin(CI.para[,2], 1), theta.para, inside)
+  parametric.average = c(apply(parametric[,-4],2,mean), coverage =sum(inside)/N)
 
-  # Nonparametric bootstrap
+
+  # Nonparametric bootstrap # forrel::nonParamBoot
   CI.non = matrix(ncol = 2, nrow = N)
   theta.non = rep(NA, N)
-  # for (j in 1:N){
-  #   boot1 = ibdBootstrap(kappa = c(theta, 1-theta, 0), N = B,
-  #                          freqList = freqList, plot = F)
-  #   CI.non[j,] = quantile(boot1[,1], probs = c(0.025, 0.975))
-  #   theta.non[j] = mean(boot1[,1])
-  # }
-  # inside = CI.non[,1] <= theta & round(CI.non[,2],6) >= theta
-  # CI.summary.non = data.frame(lower = pmax(CI.non[,1],0),
-  #                              upper = pmin(CI.non[,2], 1), theta.non, inside)
-  coverage.non = NA #sum(inside)/N
+  CI.summary.non = NA
+  for (j in 1:N){
+    x1 = profileSim(x,  1, ids, verbose = F)[[1]]
+    boot1 = ibdBootstrap(x1, ids, N = B, param = "kappa",
+                         freqList = freqList, plot = F, method ="nonparametric")
+    CI.non[j,] = quantile(boot1[,1], probs = c(0.025, 0.975))
+    theta.non[j] = mean(boot1[,1])
+  }
+  inside = CI.non[,1] <= theta & round(CI.non[,2],6) >= theta
+  coverage.non = sum(inside)/N
+  nonparametric = data.frame(lower = pmax(CI.non[,1],0),
+                             upper = pmin(CI.non[,2], 1), theta.non, inside)
+  nonparametric.average = c(apply(nonparametric[,-4],2,mean), coverage =sum(inside)/N)
 
-  list(CI.summary.MLE = CI.summary.MLE, coverage.MLE = coverage.MLE,
-       CI.summary.para = CI.summary.para, coverage.para = coverage.para,
-       CI.summary.non = CI.summary.non, coverage.non = coverage.non)
+  list(MLE = MLE, MLE.average = MLE.average,
+       parametric = parametric, parametric.average = parametric.average,
+       nonparametric = nonparametric, nonparametric.average = nonparametric.average)
 }
 
 
