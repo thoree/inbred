@@ -1,7 +1,10 @@
 #'
-#' Compare bootstrap CI-s (nonparametric and parametric bootstrap, and asymptotic)
+#' Compare CI-s (nonparametric, parametric bootstrap, and asymptotic)
 #'
-#' The
+#' The purpose is to compare confidence intervals based on nonparametric bootstrap,
+#' parametric bootstrap, and asymptotic. This is done for the simplest case: iid SNPs
+#' with frequency 0.5. We consider pairwise relationships and assume the individuals
+#' do not share two alleles IBD.
 #'
 #' @param theta Double kappa0.
 #' @param n Integer. No of markers
@@ -59,7 +62,7 @@ compareCI <- function(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL){
   CI.para = matrix(ncol = 2, nrow = N)
   theta.para = rep(NA, N)
   for (j in 1:N){
-    boot1 = kappaBootstrap(kappa = c(theta, 1-theta, 0), N = B,
+    boot1 = ibdBootstrap(kappa = c(theta, 1-theta, 0), N = B,
                          freqList = freqList, plot = F)
     CI.para[j,] = quantile(boot1[,1], probs = c(0.025, 0.975))
     theta.para[j] = mean(boot1[,1])
@@ -72,16 +75,16 @@ compareCI <- function(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL){
   # Nonparametric bootstrap
   CI.non = matrix(ncol = 2, nrow = N)
   theta.non = rep(NA, N)
-  for (j in 1:N){
-    boot1 = ibdBootstrap(kappa = c(theta, 1-theta, 0), N = B,
-                           freqList = freqList, plot = F)
-    CI.non[j,] = quantile(boot1[,1], probs = c(0.025, 0.975))
-    theta.non[j] = mean(boot1[,1])
-  }
-  inside = CI.non[,1] <= theta & round(CI.non[,2],6) >= theta
-  CI.summary.non = data.frame(lower = pmax(CI.non[,1],0),
-                               upper = pmin(CI.non[,2], 1), theta.non, inside)
-  coverage.non = sum(inside)/N
+  # for (j in 1:N){
+  #   boot1 = ibdBootstrap(kappa = c(theta, 1-theta, 0), N = B,
+  #                          freqList = freqList, plot = F)
+  #   CI.non[j,] = quantile(boot1[,1], probs = c(0.025, 0.975))
+  #   theta.non[j] = mean(boot1[,1])
+  # }
+  # inside = CI.non[,1] <= theta & round(CI.non[,2],6) >= theta
+  # CI.summary.non = data.frame(lower = pmax(CI.non[,1],0),
+  #                              upper = pmin(CI.non[,2], 1), theta.non, inside)
+  coverage.non = NA #sum(inside)/N
 
   list(CI.summary.MLE = CI.summary.MLE, coverage.MLE = coverage.MLE,
        CI.summary.para = CI.summary.para, coverage.para = coverage.para,

@@ -2,7 +2,7 @@
 % Please edit documentation in R/compareCI.R
 \name{compareCI}
 \alias{compareCI}
-\title{Compare bootstrap CI-s (nonparametric and parametric bootstrap, and asymptotic)}
+\title{Compare CI-s (nonparametric, parametric bootstrap, and asymptotic)}
 \usage{
 compareCI(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL)
 }
@@ -23,7 +23,10 @@ compareCI(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL)
 Returns table.
 }
 \description{
-The
+The purpose is to compare confidence intervals based on nonparametric bootstrap,
+parametric bootstrap, and asymptotic. This is done for the simplest case: iid SNPs
+with frequency 0.5. We consider pairwise relationships and assume the individuals
+do not share two alleles IBD.
 }
 \examples{
 library(forrel)
