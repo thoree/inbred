@@ -22,12 +22,12 @@
 #' library(pedprobr)
 #' x = halfSibPed(1)
 #' ids = c(4,5)
-#' # ids = c(1,3)
+#' #ids = c(1,3)
 #' n = 100 #markers
 #' N = 2 #simulations
 #' B = 100 # bootstraps
 #' theta = 0.5
-#' # theta = 1
+#' #theta = 1
 #' seed = 17
 #' # Frequencies for bootstrap
 #' freq = list()
@@ -35,7 +35,7 @@
 #' freq[[i]] =  list(alleles = 1:2, afreq = c(0.5, 0.5))
 #' }
 #' x = setMarkers(x, locusAttributes = freq)
-#' foo = compareCI(theta, x, ids,freqList, n, N, B, seed)
+#' foo = compareCI(theta, x, ids,n, N, B, seed)
 
 compareCI <- function(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL){
   # Find genotype probabilities
@@ -59,7 +59,7 @@ compareCI <- function(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL){
   coverage.MLE = sum(inside)/N
   # Add point estimate and indicator for being in interval
   MLE = data.frame(lower = pmax(CI[,1],0),
-                   upper = pmin(CI[,2], 1), theta.MLE, inside)
+                   upper = pmin(CI[,2], 1), theta = theta.MLE, inside)
   MLE.average = c(apply(MLE[,-4],2,mean), coverage =sum(inside)/N)
 
   # Parametric bootstrap
@@ -74,7 +74,7 @@ compareCI <- function(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL){
   inside = CI.para[,1] <= theta & round(CI.para[,2],6) >= theta
   coverage.para = sum(inside)/N
   parametric = data.frame(lower = pmax(CI.para[,1],0),
-                          upper = pmin(CI.para[,2], 1), theta.para, inside)
+                          upper = pmin(CI.para[,2], 1), theta= theta.para, inside)
   parametric.average = c(apply(parametric[,-4],2,mean), coverage =sum(inside)/N)
 
 
@@ -92,7 +92,7 @@ compareCI <- function(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL){
   inside = CI.non[,1] <= theta & round(CI.non[,2],6) >= theta
   coverage.non = sum(inside)/N
   nonparametric = data.frame(lower = pmax(CI.non[,1],0),
-                             upper = pmin(CI.non[,2], 1), theta.non, inside)
+                             upper = pmin(CI.non[,2], 1), theta = theta.non, inside)
   nonparametric.average = c(apply(nonparametric[,-4],2,mean), coverage =sum(inside)/N)
 
   list(MLE = MLE, MLE.average = MLE.average,

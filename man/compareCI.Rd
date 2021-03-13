@@ -35,12 +35,12 @@ library(forrel)
 library(pedprobr)
 x = halfSibPed(1)
 ids = c(4,5)
-# ids = c(1,3)
+#ids = c(1,3)
 n = 100 #markers
 N = 2 #simulations
 B = 100 # bootstraps
 theta = 0.5
-# theta = 1
+#theta = 1
 seed = 17
 # Frequencies for bootstrap
 freq = list()
@@ -48,5 +48,5 @@ for (i in 1:n){
 freq[[i]] =  list(alleles = 1:2, afreq = c(0.5, 0.5))
 }
 x = setMarkers(x, locusAttributes = freq)
-foo = compareCI(theta, x, ids,freqList, n, N, B, seed)
+foo = compareCI(theta, x, ids,n, N, B, seed)
 }
