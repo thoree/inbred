@@ -1,13 +1,13 @@
 #'
-#' Compare CI-s (nonparametric, parametric bootstrap, and asymptotic)
+#' Compare 95\% CI-s (nonparametric, parametric bootstrap, and asymptotic)
 #'
-#' The purpose is to compare confidence intervals based on nonparametric bootstrap,
-#' parametric bootstrap, and asymptotic. This is done for the simplest case: iid SNPs
-#' with frequency 0.5. We consider pairwise relationships and assume the individuals
-#' do not share two alleles IBD. Percentile t, bca
+#' The purpose is to compare confidence intervals based on parametric bootstrap and
+#' nonparametric bootstrap. For a simple case: iid SNPs
+#' with frequency 0.5 and kappa2 = 0, asymptotic results are calculated from
+#' formulae.
 #'
 #' @param theta Double kappa0.
-#' @param x ped object.
+#' @param x ped object with allele frequencies.
 #' @param ids Id of pair.
 #' @param n Integer. No of markers.
 #' @param N Integer. No of simulations.
@@ -15,89 +15,119 @@
 #' @param seed Integer.
 
 
-#' @return Returns table.
+#' @return Returns a list with length 3 or 4 (if asymptotic is included).
+#' The last element of the list contains averaged CI-s, coverage, and dist
+#' (as defined in `ibdBootstrap`),
+#' the former elements contain the same information for each CI.
+#'
+#' @details The equations for the simple asymptotic case are documented separately.
+#' CI-s for the bootstrap are calculated using the percentile method.
+#' Only estimates in the asymptotic case are constrained by kappa2 = 0.
+#' This makes comparison between the asymptotic and the bootstrap estimates a bit unfair.
+#'
 #' @export
 #' @examples
 #' library(forrel)
 #' library(pedprobr)
+#'
+#' # Example 1. Assumptions for simple asymptotics met.
 #' x = halfSibPed(1)
-#' ids = c(4,5)
-#' #ids = c(1,3)
-#' n = 100 #markers
-#' N = 2 #simulations
-#' B = 100 # bootstraps
-#' theta = 0.5
-#' #theta = 1
-#' seed = 17
+#' n = 100 # no of markers
+#' N = 2 # no of simulations
+#' B = 100 # no of  bootstraps
 #' # Frequencies for bootstrap
 #' freq = list()
-#' for (i in 1:n){
-#' freq[[i]] =  list(alleles = 1:2, afreq = c(0.5, 0.5))
-#' }
+#' for (i in 1:n)
+#'  freq[[i]] =  list(alleles = 1:2, afreq = c(0.5, 0.5))
 #' x = setMarkers(x, locusAttributes = freq)
-#' foo = compareCI(theta, x, ids,n, N, B, seed)
+#'
+#' # Unrelated
+#' ids = c(1,3); theta = 1
+#' foo1 = compareCI(theta, x, ids, n, N, B)
+#' foo1$average
+#'
+#' #' half sibs
+#' ids = c(4,5); theta = 0.5; seed = 17;
+#' foo2 = compareCI(theta, x, ids, n, N, B,)
+#' foo2$average
+#'
+#' # Parent offspring
+#' ids = c(1, 4); theta = 0; seed = 17
+#' foo3 = compareCI(theta, x, ids, n, N, B)
+#' foo3$average
 
-compareCI <- function(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL){
-  # Find genotype probabilities
+compareCI <- function(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL,
+                      asymptotic = TRUE){
   set.seed(seed)
-  p = findp(x, ids)
-  # Simulate from multionomial and find sufficient statistics
-  tab = rmultinom(N, n, p)
-  rownames(tab) = c("n11", "n12", "n13", "n21", "n22", "n23",
-                    "n31", "n32", "n33" )
-  n1 = tab["n11",] + tab["n33",]
-  n2 = tab["n13",] + tab["n31",]
-  n3 = tab["n22",]
-  n4 = tab["n12",] + tab["n21",]+tab["n23",] + tab["n32",]
+  if(asymptotic){
+    # Find genotype probabilities
+    p = findp(x, ids)
 
-  ## MLE estimate and asymptotic confidence interval
-  theta.MLE = pmin(c(2/(1+n1/n2)), 1)
-  se = sqrt(1/(n*I1(theta.MLE)))
-  CI = matrix(c("lower" = theta.MLE - 1.96*se,
-                "upper" = theta.MLE + 1.96*se), ncol = 2)
-  inside = CI[,1] <= theta & CI[,2] >= theta
-  coverage.MLE = sum(inside)/N
-  # Add point estimate and indicator for being in interval
-  MLE = data.frame(lower = pmax(CI[,1],0),
-                   upper = pmin(CI[,2], 1), theta = theta.MLE, inside)
-  MLE.average = c(apply(MLE[,-4],2,mean), coverage =sum(inside)/N)
+    # Simulate from multionomial and find sufficient statistics n1, n2, n3 and n4
+    tab = rmultinom(N, n, p)
+    rownames(tab) = c("n11", "n12", "n13", "n21", "n22", "n23",
+                      "n31", "n32", "n33" )
+    n1 = tab["n11",] + tab["n33",]
+    n2 = tab["n13",] + tab["n31",]
+    n3 = tab["n22",]
+    n4 = tab["n12",] + tab["n21",]+tab["n23",] + tab["n32",]
 
-  # Parametric bootstrap
-  CI.para = matrix(ncol = 2, nrow = N)
-  theta.para = rep(NA, N)
-  for (j in 1:N){
-    boot1 = ibdBootstrap(x,kappa = c(theta, 1-theta, 0),  N = B,
-                         plot = F)
-    CI.para[j,] = quantile(boot1[,1], probs = c(0.025, 0.975))
-    theta.para[j] = mean(boot1[,1])
+    ## MLE estimate and asymptotic confidence interval
+    theta.MLE = pmin(c(2/(1+n1/n2)), 1)
+    se = sqrt(1/(n*I1(theta.MLE)))
+    CI = matrix(c("lower" = theta.MLE - 1.96*se,
+                  "upper" = theta.MLE + 1.96*se), ncol = 2)
+    coverage = CI[,1] <= theta & CI[,2] >= theta
+    dist = sqrt(2)*abs(theta.MLE - theta)
+
+    MLE = data.frame(lower = pmax(CI[,1],0),
+                     upper = pmin(CI[,2], 1), theta = theta.MLE, coverage, dist)
+    MLE.average = apply(MLE, 2, mean)
   }
-  inside = CI.para[,1] <= theta & round(CI.para[,2],6) >= theta
-  coverage.para = sum(inside)/N
-  parametric = data.frame(lower = pmax(CI.para[,1],0),
-                          upper = pmin(CI.para[,2], 1), theta= theta.para, inside)
-  parametric.average = c(apply(parametric[,-4],2,mean), coverage =sum(inside)/N)
 
 
-  # Nonparametric bootstrap # forrel::nonParamBoot
-  CI.non = matrix(ncol = 2, nrow = N)
-  theta.non = rep(NA, N)
-  CI.summary.non = NA
+  CI = matrix(ncol = 2, nrow = N)
+  theta.est = dist = rep(NA, N)
+  # Parametric bootstrap
+  for (j in 1:N){
+    boot1 = ibdBootstrap(x, kappa = c(theta, 1-theta, 0),  N = B,
+                         plot = F)
+    CI[j,] = quantile(boot1[,1], probs = c(0.025, 0.975))
+    theta.est[j] = mean(boot1$k0)
+    dist[j] = mean(boot1$dist)
+  }
+  coverage = CI[,1] <= theta & round(CI[,2],6) >= theta
+  parametric = data.frame(lower = pmax(CI[,1],0), upper = pmin(CI[,2], 1),
+                          theta.est = theta.est, coverage, dist = dist)
+  parametric.average = apply(parametric,2, mean)
+
+  # Nonparametric bootstrap
   for (j in 1:N){
     x1 = profileSim(x,  1, ids, verbose = F)[[1]]
     boot1 = ibdBootstrap(x1, ids, N = B, param = "kappa",
-                         freqList = freqList, plot = F, method ="nonparametric")
-    CI.non[j,] = quantile(boot1[,1], probs = c(0.025, 0.975))
-    theta.non[j] = mean(boot1[,1])
+                        plot = F, method ="nonparametric")
+    CI[j,] = quantile(boot1[,1], probs = c(0.025, 0.975))
+    theta.est[j] = mean(boot1$k0)
+    dist[j] = mean(boot1$dist)
   }
-  inside = CI.non[,1] <= theta & round(CI.non[,2],6) >= theta
-  coverage.non = sum(inside)/N
-  nonparametric = data.frame(lower = pmax(CI.non[,1],0),
-                             upper = pmin(CI.non[,2], 1), theta = theta.non, inside)
-  nonparametric.average = c(apply(nonparametric[,-4],2,mean), coverage =sum(inside)/N)
+  coverage = CI[,1] <= theta & round(CI[,2],6) >= theta
+  nonparametric = data.frame(lower = pmax(CI[,1],0), upper = pmin(CI[,2], 1),
+                             theta.est = theta.est,  coverage, dist = dist)
+  nonparametric.average = apply(nonparametric,2, mean)
 
-  list(MLE = MLE, MLE.average = MLE.average,
-       parametric = parametric, parametric.average = parametric.average,
-       nonparametric = nonparametric, nonparametric.average = nonparametric.average)
+  # Output depends of whether asymptotic results are included
+  if(asymptotic){
+    average = rbind(MLE.average, parametric.average, nonparametric.average)
+    row.names(average) = c("asymptotic", "parametric", "nonparametric")
+    res = list(MLE = MLE,  parametric = parametric,  nonparametric = nonparametric,
+               average = average)
+  } else {
+    average = rbind( parametric.average, nonparametric.average)
+    row.names(average) = c( "parametric", "nonparametric")
+    res = list(parametric = parametric,  nonparametric = nonparametric,
+               average = average)
+  }
+  res
 }
 
 

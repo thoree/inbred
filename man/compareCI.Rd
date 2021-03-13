@@ -2,14 +2,14 @@
 % Please edit documentation in R/compareCI.R
 \name{compareCI}
 \alias{compareCI}
-\title{Compare CI-s (nonparametric, parametric bootstrap, and asymptotic)}
+\title{Compare 95\% CI-s (nonparametric, parametric bootstrap, and asymptotic)}
 \usage{
-compareCI(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL)
+compareCI(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL, asymptotic = TRUE)
 }
 \arguments{
 \item{theta}{Double kappa0.}
 
-\item{x}{ped object.}
+\item{x}{ped object with allele frequencies.}
 
 \item{ids}{Id of pair.}
 
@@ -22,31 +22,50 @@ compareCI(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL)
 \item{seed}{Integer.}
 }
 \value{
-Returns table.
+Returns a list with length 3 or 4 (if asymptotic is included).
+The last element of the list contains averaged CI-s, coverage, and dist
+(as defined in `ibdBootstrap`),
+the former elements contain the same information for each CI.
 }
 \description{
-The purpose is to compare confidence intervals based on nonparametric bootstrap,
-parametric bootstrap, and asymptotic. This is done for the simplest case: iid SNPs
-with frequency 0.5. We consider pairwise relationships and assume the individuals
-do not share two alleles IBD. Percentile t, bca
+The purpose is to compare confidence intervals based on parametric bootstrap and
+nonparametric bootstrap. For a simple case: iid SNPs
+with frequency 0.5 and kappa2 = 0, asymptotic results are calculated from
+formulae.
+}
+\details{
+The equations for the simple asymptotic case are documented separately.
+CI-s for the bootstrap are calculated using the percentile method.
+Only estimates in the asymptotic case are constrained by kappa2 = 0.
+This makes comparison between the asymptotic and the bootstrap estimates a bit unfair.
 }
 \examples{
 library(forrel)
 library(pedprobr)
+
+# Example 1. Assumptions for simple asymptotics met.
 x = halfSibPed(1)
-ids = c(4,5)
-#ids = c(1,3)
-n = 100 #markers
-N = 2 #simulations
-B = 100 # bootstraps
-theta = 0.5
-#theta = 1
-seed = 17
+n = 100 # no of markers
+N = 2 # no of simulations
+B = 100 # no of  bootstraps
 # Frequencies for bootstrap
 freq = list()
-for (i in 1:n){
-freq[[i]] =  list(alleles = 1:2, afreq = c(0.5, 0.5))
-}
+for (i in 1:n)
+ freq[[i]] =  list(alleles = 1:2, afreq = c(0.5, 0.5))
 x = setMarkers(x, locusAttributes = freq)
-foo = compareCI(theta, x, ids,n, N, B, seed)
+
+# Unrelated
+ids = c(1,3); theta = 1
+foo1 = compareCI(theta, x, ids, n, N, B)
+foo1$average
+
+#' half sibs
+ids = c(4,5); theta = 0.5; seed = 17;
+foo2 = compareCI(theta, x, ids, n, N, B,)
+foo2$average
+
+# Parent offspring
+ids = c(1, 4); theta = 0; seed = 17
+foo3 = compareCI(theta, x, ids, n, N, B)
+foo3$average
 }

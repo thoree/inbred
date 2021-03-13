@@ -1,10 +1,10 @@
 Package: inbred
 Type: Package
-Title: Likelihood Ratios for inbred pairs
+Title: Different functions related to LR, bootstrap etc
 Version: 0.1.0
 Author: Thore
 Maintainer: The package maintainer <Thore.Egeland@gmail.com>
-Description: Finds expected value of LR and perhaps more for inbred pairs.
+Description: Temporary functions.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
