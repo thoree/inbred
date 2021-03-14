@@ -2,7 +2,7 @@
 % Please edit documentation in R/compareCI.R
 \name{compareCI}
 \alias{compareCI}
-\title{Compare 95\% CI-s (nonparametric, parametric bootstrap, and asymptotic)}
+\title{Compare kinskip confidence intervals}
 \usage{
 compareCI(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL, asymptotic = TRUE)
 }
@@ -23,15 +23,14 @@ compareCI(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL, asymptotic = TRUE)
 }
 \value{
 Returns a list with length 3 or 4 (if asymptotic is included).
-The last element of the list contains averaged CI-s, coverage, and dist
+The last element of the list contains averaged CI, point estimate, coverage, and dist
 (as defined in `ibdBootstrap`),
 the former elements contain the same information for each CI.
 }
 \description{
-The purpose is to compare confidence intervals based on parametric bootstrap and
-nonparametric bootstrap. For a simple case: iid SNPs
-with frequency 0.5 and kappa2 = 0, asymptotic results are calculated from
-formulae.
+The purpose is to compare confidence intervals (CI-s) based on parametric bootstrap and
+nonparametric bootstrap. For a simple case, iid SNPs
+with frequency 0.5 and kappa2 = 0, the asymptotic counterparts are provided.
 }
 \details{
 The equations for the simple asymptotic case are documented separately.
@@ -48,24 +47,59 @@ x = halfSibPed(1)
 n = 100 # no of markers
 N = 2 # no of simulations
 B = 100 # no of  bootstraps
-# Frequencies for bootstrap
+
+## Frequencies for bootstrap
 freq = list()
 for (i in 1:n)
  freq[[i]] =  list(alleles = 1:2, afreq = c(0.5, 0.5))
 x = setMarkers(x, locusAttributes = freq)
 
-# Unrelated
-ids = c(1,3); theta = 1
+## Parent offspring
+ids = c(1, 4); theta = 0; seed = 17
 foo1 = compareCI(theta, x, ids, n, N, B)
-foo1$average
 
-#' half sibs
+## half sibs
 ids = c(4,5); theta = 0.5; seed = 17;
 foo2 = compareCI(theta, x, ids, n, N, B,)
-foo2$average
 
-# Parent offspring
-ids = c(1, 4); theta = 0; seed = 17
+## Unrelated
+ids = c(1,3); theta = 1
 foo3 = compareCI(theta, x, ids, n, N, B)
-foo3$average
+
+cbind(theta = rep(c(0,0.5,1), each = 3),
+      rbind(foo1$average, foo2$average, foo3$average))
+
+# Example 2. Strong deviation from iid
+
+n1 = 19 # no of id markers
+n2 = 1
+MAF = 0.001 #minor allele frequency
+n = n1 + n2 # no of markers
+N = 2 # no of simulations
+B = 100 # no of  bootstraps
+
+## Frequencies for bootstrap
+freq = list()
+for (i in 1:n1)
+ freq[[i]] =  list(alleles = 1:2, afreq = c(0.5, 0.5))
+for (i in (n1+1):n)
+ freq[[i]] =  list(alleles = 1:2, afreq = c(MAF, 1-MAF))
+x = setMarkers(x, locusAttributes = freq)
+
+
+## Parent offspring
+ids = c(1, 4); theta = 0; seed = 17
+foo1 = compareCI(theta, x, ids, n, N, B, asymptotic = FALSE)
+
+## half sibs
+ids = c(4,5); theta = 0.5; seed = 17;
+foo2 = compareCI(theta, x, ids, n, N, B, asymptotic= FALSE)
+
+## Unrelated
+ids = c(1,3); theta = 1
+foo3 = compareCI(theta, x, ids, n, N, B, asymptotic = FALSE)
+
+cbind(theta = rep(c(0,0.5,1), each = 2),
+      rbind(foo1$average, foo2$average, foo3$average))
+
 }
