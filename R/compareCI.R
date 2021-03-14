@@ -8,7 +8,7 @@
 #' @param theta Double kappa0.
 #' @param x ped object with allele frequencies.
 #' @param ids Id of pair.
-#' @param n Integer. No of markers.
+#' @param n Integer. No of markers, only used in the asymptoic case
 #' @param N Integer. No of simulations.
 #' @param B Integer. No of bootstraps.
 #' @param seed Integer.
@@ -89,7 +89,7 @@
 #' cbind(theta = rep(c(0,0.5,1), each = 2),
 #'       rbind(foo1$average, foo2$average, foo3$average))
 #'
-compareCI <- function(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL,
+compareCI <- function(theta, x, ids, n = NULL, N = 2, B = 2, seed = NULL,
                       asymptotic = TRUE){
   set.seed(seed)
   if(asymptotic){

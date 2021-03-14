@@ -4,7 +4,16 @@
 \alias{compareCI}
 \title{Compare kinskip confidence intervals}
 \usage{
-compareCI(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL, asymptotic = TRUE)
+compareCI(
+  theta,
+  x,
+  ids,
+  n = NULL,
+  N = 2,
+  B = 2,
+  seed = NULL,
+  asymptotic = TRUE
+)
 }
 \arguments{
 \item{theta}{Double kappa0.}
@@ -13,7 +22,7 @@ compareCI(theta, x, ids, n = 2, N = 2, B = 2, seed = NULL, asymptotic = TRUE)
 
 \item{ids}{Id of pair.}
 
-\item{n}{Integer. No of markers.}
+\item{n}{Integer. No of markers, only used in the asymptoic case}
 
 \item{N}{Integer. No of simulations.}
 
