@@ -91,7 +91,8 @@
 #'
 compareCI <- function(theta, x, ids, n = NULL, N = 2, B = 2, seed = NULL,
                       asymptotic = TRUE){
-  set.seed(seed)
+  if(!is.null(seed))
+    set.seed(seed)
   if(asymptotic){
     # Find genotype probabilities
     p = findp(x, ids)
