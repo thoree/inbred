@@ -3,7 +3,8 @@
 
 # The inbred library
 
-The expected likelihood ratio is calculated
+The library contains various temporary functions related to LR,
+bootstrap etc
 
 ## Installation
 
