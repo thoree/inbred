@@ -12,7 +12,8 @@ compareCI(
   N = 2,
   B = 2,
   seed = NULL,
-  asymptotic = TRUE
+  asymptotic = TRUE,
+  bca = FALSE
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ compareCI(
 \item{B}{Integer. No of bootstraps.}
 
 \item{seed}{Integer.}
+
+\item{bca}{Logical.}
 }
 \value{
 Returns a list with length 3 or 4 (if asymptotic is included).
@@ -53,10 +56,10 @@ library(pedprobr)
 
 # Example 1. Assumptions for simple asymptotics met.
 x = halfSibPed(1)
-n = 100 # no of markers
-N = 2 # no of simulations
-B = 100 # no of  bootstraps
-
+n = 100# no of markers
+N = 100 # no of simulations
+B = 1000 # no of  bootstraps
+bca = FALSE
 ## Frequencies for bootstrap
 freq = list()
 for (i in 1:n)
@@ -65,15 +68,15 @@ x = setMarkers(x, locusAttributes = freq)
 
 ## Parent offspring
 ids = c(1, 4); theta = 0; seed = 17
-foo1 = compareCI(theta, x, ids, n, N, B)
+foo1 = compareCI(theta, x, ids, n, N, B, bca = bca)
 
 ## half sibs
 ids = c(4,5); theta = 0.5; seed = 17;
-foo2 = compareCI(theta, x, ids, n, N, B,)
+foo2 = compareCI(theta, x, ids, n, N, B, bca = bca, seed)
 
 ## Unrelated
 ids = c(1,3); theta = 1
-foo3 = compareCI(theta, x, ids, n, N, B)
+foo3 = compareCI(theta, x, ids, n, N, B, bca = bca)
 
 cbind(theta = rep(c(0,0.5,1), each = 3),
       rbind(foo1$average, foo2$average, foo3$average))

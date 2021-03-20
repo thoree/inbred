@@ -12,6 +12,7 @@
 #' @param N Integer. No of simulations.
 #' @param B Integer. No of bootstraps.
 #' @param seed Integer.
+#' @param bca Logical.
 
 
 #' @return Returns a list with length 3 or 4 (if asymptotic is included).
@@ -31,10 +32,10 @@
 #'
 #' # Example 1. Assumptions for simple asymptotics met.
 #' x = halfSibPed(1)
-#' n = 100 # no of markers
-#' N = 2 # no of simulations
-#' B = 100 # no of  bootstraps
-#'
+#' n = 100# no of markers
+#' N = 100 # no of simulations
+#' B = 1000 # no of  bootstraps
+#' bca = FALSE
 #' ## Frequencies for bootstrap
 #' freq = list()
 #' for (i in 1:n)
@@ -43,15 +44,15 @@
 #'
 #' ## Parent offspring
 #' ids = c(1, 4); theta = 0; seed = 17
-#' foo1 = compareCI(theta, x, ids, n, N, B)
+#' foo1 = compareCI(theta, x, ids, n, N, B, bca = bca)
 #'
 #' ## half sibs
 #' ids = c(4,5); theta = 0.5; seed = 17;
-#' foo2 = compareCI(theta, x, ids, n, N, B,)
+#' foo2 = compareCI(theta, x, ids, n, N, B, bca = bca, seed)
 #'
 #' ## Unrelated
 #' ids = c(1,3); theta = 1
-#' foo3 = compareCI(theta, x, ids, n, N, B)
+#' foo3 = compareCI(theta, x, ids, n, N, B, bca = bca)
 #'
 #' cbind(theta = rep(c(0,0.5,1), each = 3),
 #'       rbind(foo1$average, foo2$average, foo3$average))
@@ -90,7 +91,7 @@
 #'       rbind(foo1$average, foo2$average, foo3$average))
 #'
 compareCI <- function(theta, x, ids, n = NULL, N = 2, B = 2, seed = NULL,
-                      asymptotic = TRUE){
+                      asymptotic = TRUE, bca = FALSE){
   if(!is.null(seed))
     set.seed(seed)
   if(asymptotic){
@@ -125,7 +126,7 @@ compareCI <- function(theta, x, ids, n = NULL, N = 2, B = 2, seed = NULL,
   for (j in 1:N){
     boot1 = ibdBootstrap(x, kappa = c(theta, 1-theta, 0),  N = B,
                          plot = F)
-    CI[j,] = quantile(boot1[,1], probs = c(0.025, 0.975))
+    CI[j,] = ci(boot1[,1], bca = bca)
     theta.est[j] = mean(boot1$k0)
     dist[j] = mean(boot1$dist)
   }
@@ -139,7 +140,7 @@ compareCI <- function(theta, x, ids, n = NULL, N = 2, B = 2, seed = NULL,
     x1 = profileSim(x,  1, ids, verbose = F)[[1]]
     boot1 = ibdBootstrap(x1, ids, N = B, param = "kappa",
                         plot = F, method = "nonparametric")
-    CI[j,] = quantile(boot1[,1], probs = c(0.025, 0.975))
+    CI[j,] = ci(boot1[,1], bca = bca)
     theta.est[j] = mean(boot1$k0)
     dist[j] = mean(boot1$dist)
   }
@@ -183,4 +184,12 @@ p1 = function(p = 0.5, k0 = 0.25, k1 = 0.5, k2 = 0.25)
 
 p2 = function(p = 0.5, k0 = 0.25)
   k0 * p^4
+
+ci = function(x, bca = FALSE){
+  if(bca)
+    coxed::bca(x)
+  else
+    quantile(x, probs = c(0.025, 0.975))
+}
+
 
