@@ -12,7 +12,8 @@ realisedPhi(
   seed = NULL,
   level = 0.95,
   method = "parametric",
-  bca = FALSE
+  bca = FALSE,
+  plot = F
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ realisedPhi(
 \item{method}{Character 'parametric' or 'nonparametric'}
 
 \item{bca}{Logical}
+
+\item{plot}{Logical}
 }
 \value{
 Returns a l
@@ -57,13 +60,15 @@ for (i in 1:n)
 ped = quadHalfFirstCousins()
 ids = leaves(ped)
 ped = setMarkers(ped, locusAttributes = NorwegianFrequencies)
-N = 100
-B = 400
+N = 1
+B = 100
 seed = 17
 bca = FALSE
+plot = T
 date()
 resParametric = realisedPhi(ped = ped, ids = ids, N = N, B = B,
-                            method = "parametric", seed = seed, level = 0.95, bca = bca)
+                            method = "parametric", seed = seed,
+                            level = 0.95, bca = bca, plot = plot)
 resNonparametric = realisedPhi(ped = ped, ids = ids, N = N, B = B,
                             method = "nonparametric", seed = seed, level = 0.95, bca = bca)
 res = rbind(resParametric[N+1,], resNonparametric[N+1,] )
