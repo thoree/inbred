@@ -1,5 +1,5 @@
 #'
-#' Compare kinskip confidence intervals
+#' Obsolete. Compare kinship confidence intervals
 #'
 #' The purpose is to compare confidence intervals (CI-s) based on parametric bootstrap and
 #' nonparametric bootstrap. For a simple case, iid SNPs
@@ -126,7 +126,7 @@ compareCI <- function(theta, x, ids, n = NULL, N = 2, B = 2, seed = NULL,
   for (j in 1:N){
     boot1 = ibdBootstrap(x, kappa = c(theta, 1-theta, 0),  N = B,
                          plot = F)
-    CI[j,] = ci(boot1[,1], bca = bca)
+    CI[j,] = ci2(boot1[,1], bca = bca)
     theta.est[j] = mean(boot1$k0)
     dist[j] = mean(boot1$dist)
   }
@@ -140,7 +140,7 @@ compareCI <- function(theta, x, ids, n = NULL, N = 2, B = 2, seed = NULL,
     x1 = profileSim(x,  1, ids, verbose = F)[[1]]
     boot1 = ibdBootstrap(x1, ids, N = B, param = "kappa",
                         plot = F, method = "nonparametric")
-    CI[j,] = ci(boot1[,1], bca = bca)
+    CI[j,] = ci2(boot1[,1], bca = bca)
     theta.est[j] = mean(boot1$k0)
     dist[j] = mean(boot1$dist)
   }
@@ -185,7 +185,7 @@ p1 = function(p = 0.5, k0 = 0.25, k1 = 0.5, k2 = 0.25)
 p2 = function(p = 0.5, k0 = 0.25)
   k0 * p^4
 
-ci = function(x, bca = FALSE){
+ci2 = function(x, bca = FALSE){
   if(bca)
     coxed::bca(x)
   else

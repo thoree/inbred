@@ -2,7 +2,7 @@
 % Please edit documentation in R/compareCI.R
 \name{compareCI}
 \alias{compareCI}
-\title{Compare kinskip confidence intervals}
+\title{Obsolete. Compare kinship confidence intervals}
 \usage{
 compareCI(
   theta,

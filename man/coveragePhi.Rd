@@ -36,7 +36,7 @@ library(pedprobr)
 library(ribd)
 library(moments)
 
-# Example 1
+# Example 1a Estimate coverage and more
 n = 1000 # no of markers
 p = rep(0.5, n)
 freq = list()
@@ -48,6 +48,15 @@ N = 400 # no of confidence intervals
 B = 400 # no of  bootstraps
 seed = 2
 kappa = ribd::kappaIBD(ped, ids = leaves(ped))
+kappa = c(0.95, 0.05, 0)
 res1 = coveragePhi(kappa = kappa, ped = ped, ids, N = N, B = B, seed = seed, level = 0.95)
 round(res1[c(1:2,N+1),], 4)
+
+Example 1b Plotting for Example 1a
+windows()
+par(mfrow = c(1,3))
+boot1 = ibdBootstrap(ped, kappa = kappa,  N = B, plot = T)
+phi.hat = 0.25*boot1$k1 + 0.5*boot1$k2
+plot(density(phi.hat), main = "", xlab = "Kinship coefficient")
+qqnorm(phi.hat)
 }
