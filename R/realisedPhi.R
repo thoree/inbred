@@ -32,7 +32,7 @@
 #' ped = quadHalfFirstCousins()
 #' ids = leaves(ped)
 #' ped = setMarkers(ped, locusAttributes = NorwegianFrequencies)
-#' N = 100
+#' N = 400
 #' B = 400
 #' seed = 17
 #' bca = FALSE
