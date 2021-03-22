@@ -17,9 +17,9 @@ realisedPhi(
 )
 }
 \arguments{
-\item{ped}{ped object with allele frequencies.}
+\item{ped}{object with allele frequencies.}
 
-\item{ids}{Id of pair.}
+\item{ids}{of pair.}
 
 \item{N}{Integer. No of simulations.}
 
@@ -36,13 +36,31 @@ realisedPhi(
 \item{plot}{Logical}
 }
 \value{
-Returns a l
+Returns a list with two elements, a dataframe and the result
+  of last simulation called `lastBoot`(see documentation of `ibdBootstrap`).
+  The columns of the data frame are
+
+  * `phi.realised` The realised value for each bootstrap simulation
+
+  * `phi.hat` The estimate for each bootstrap
+
+  * `skew` See details
+
+  * `dist` See documentation of `ibdBootstrap`
+
+  * `lower` Lower bound for interval
+
+  * `phi.pedigree` Pedigree value
+
+  * `upper` Upper bound for interval
+
+  * `coverage`
 }
 \description{
-Currently we only consider parametric bootstrap and the kinship coefficient.
+We consider parametric and nonparametric bootstrap of the kinship coefficient.
 }
 \details{
-The equations
+See note coverage.pdf
 }
 \examples{
 library(forrel)
@@ -51,29 +69,28 @@ library(ribd)
 library(moments)
 library(coxed)
 
-# Example 1a Estimate coverage and more
-n = 100 # no of markers
+# Example One parametric and nonparametric simulation with plots
+\donttest{
+n = 1000 # no of markers
 p = rep(0.5, n)
 freq = list()
 for (i in 1:n)
   freq[[i]] =  list(afreq = c("1" = p[i], "2" = 1- p[i]))
 ped = quadHalfFirstCousins()
-ids = leaves(ped)
-ped = setMarkers(ped, locusAttributes = NorwegianFrequencies)
-N = 1
-B = 100
-seed = 17
-bca = FALSE
-plot = T
-date()
-resParametric = realisedPhi(ped = ped, ids = ids, N = N, B = B,
-                            method = "parametric", seed = seed,
-                            level = 0.95, bca = bca, plot = plot)
-resNonparametric = realisedPhi(ped = ped, ids = ids, N = N, B = B,
-                            method = "nonparametric", seed = seed, level = 0.95, bca = bca)
-res = rbind(resParametric[N+1,], resNonparametric[N+1,] )
-rownames(res) = c("parametric", "nonparametric")
-round(res,4)
-date()
+ped = setMarkers(ped, locusAttributes = freq)
+# Above freq can be replaced by NorwegianFrequencies
+
+resParametric = realisedPhi(ped = ped, ids = leaves(ped), N = 1, B = 400,
+                            method = "parametric", seed = 17, plot = TRUE)
+foo = resParametric$lastBoot
+phi.hat = 0.25*foo$k1+0.5*foo$k2
+qqnorm(phi.hat, main = "", xlab ="")
+
+resNonparametric = realisedPhi(ped = ped, ids = leaves(ped), N = 1, B = 400,
+                            method = "nonparametric", seed = 17, plot = TRUE)
+foo = resNonparametric$lastBoot
+phi.hat = 0.25*foo$k1+0.5*foo$k2
+qqnorm(phi.hat, main = "", xlab ="")
+}
 
 }

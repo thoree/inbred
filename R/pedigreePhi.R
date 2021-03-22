@@ -10,43 +10,61 @@
 #' @param B Integer. No of bootstraps.
 #' @param seed Integer.
 #' @param level Double
+#' @param plot Logical
+#'
 #' @return Returns a l
 #'
-#' @details The equations
+#'
+#' @return Returns a list with two elements, a dataframe and the result
+#'   of last simulation called `lastBoot`(see documentation of `ibdBootstrap`).
+#'   The columns of the data frame are
+#'
+#'   * `phi.hat` The estimate for each bootstrap
+#'
+#'   * `skew` See details
+#'
+#'   * `dist` See documentation of `ibdBootstrap`
+#'
+#'   * `lower` Lower bound for interval
+#'
+#'
+#'   * `upper` Upper bound for interval
+#'
+#'   * `coverage`
+
+#' @details See note coverage.pdf
 #'
 #' @export
+#'
 #' @examples
 #' library(forrel)
 #' library(pedprobr)
 #' library(ribd)
 #' library(moments)
 #'
-#' # Example 1a Estimate coverage and more
-#' n = 1000 # no of markers
+#' # Example Estimate coverage and more
+#' n = 100 # no of markers
 #' p = rep(0.5, n)
 #' freq = list()
 #' for (i in 1:n)
 #'   freq[[i]] =  list(afreq = c("1" = p[i], "2" = 1- p[i]))
 #' ped = quadHalfFirstCousins()
 #' ped = setMarkers(ped, locusAttributes = freq)
-#' N = 400 # no of confidence intervals
-#' B = 400 # no of  bootstraps
+#' N = 2 # no of confidence intervals
+#' B = 100 # no of  bootstraps
 #' seed = 2
 #' kappa = ribd::kappaIBD(ped, ids = leaves(ped))
-#' kappa = c(0.95, 0.05, 0)
-#' res1 = coveragePhi(kappa = kappa, ped = ped, ids, N = N, B = B, seed = seed, level = 0.95)
-#' round(res1[c(1:2,N+1),], 4)
-#'
-#' Example 1b Plotting for Example 1a
-#' windows()
-#' par(mfrow = c(1,3))
-#' boot1 = ibdBootstrap(ped, kappa = kappa,  N = B, plot = T)
+#' res1 = pedigreePhi(kappa = kappa, ped = ped, ids,
+#'                    N = N, B = B, seed = seed, level = 0.95, plot = T)
+#' round(res1$tab[c(1:2,N+1),], 4)
+#' boot1 = res1$lastBoot
 #' phi.hat = 0.25*boot1$k1 + 0.5*boot1$k2
 #' plot(density(phi.hat), main = "", xlab = "Kinship coefficient")
 #' qqnorm(phi.hat)
 
 
-coveragePhi <- function(kappa, ped, ids = NULL, N = 2, B = 2, seed = NULL, level = 0.95){
+pedigreePhi <- function(kappa, ped, ids = NULL, N = 2, B = 2,
+                        seed = NULL, level = 0.95, plot = F){
   if(!is.null(seed))
     set.seed(seed)
   CI = matrix(ncol = 2, nrow = N)
@@ -54,7 +72,7 @@ coveragePhi <- function(kappa, ped, ids = NULL, N = 2, B = 2, seed = NULL, level
   phi.hat = skew = dist = rep(NA, N)
 
   for (j in 1:N){
-    boot1 = ibdBootstrap(ped, kappa = kappa,  N = B, plot = F)
+    boot1 = ibdBootstrap(ped, kappa = kappa,  N = B, plot = plot)
     phis = 0.25*boot1[,2] + 0.5*boot1[,3]
     phi.hat[j] = mean(phis)
     skew[j] = skewness(phis)
@@ -65,7 +83,7 @@ coveragePhi <- function(kappa, ped, ids = NULL, N = 2, B = 2, seed = NULL, level
   res1 = cbind(phi.hat, skew, dist, lower = CI[,1], upper = CI[,2], coverage)
   res2 = rbind(res1, apply(res1, 2, mean))
   rownames(res2) = c(paste0("sim", 1:N), "average")
-  as.data.frame(res2)
+  list(tab = as.data.frame(res2), lastBoot = boot1)
 }
 
 ci = function(x, level = 0.95){
