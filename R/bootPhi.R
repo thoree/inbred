@@ -97,7 +97,7 @@ bootPhi <- function(ped, ids = NULL, N = 2, B = 2,
     tabParam[j, 1:5] = c(phi.hat, skew, CI, coverage)
 
     bootNon = ibdBootstrap(sim[[j]], ids, param = "kappa", N = B,
-                          method = method, plot = plot)
+                          method = "nonparametric", plot = plot)
     phis = 0.25*bootNon[,2] + 0.5*bootNon[,3]
     phi.hat = mean(phis)
     skew = phi.hat - phi.obs[j]
