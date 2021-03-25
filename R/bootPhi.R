@@ -41,21 +41,15 @@
 #'
 #' @examples
 #' library(forrel)
-#' library(pedprobr)
 #' library(ribd)
-#' library(coxed)
+#' library(coxed) # for bca confidence intervals
 #'
 #' # Example Estimate coverage and more
-#' n = 100 # no of markers
-#' p = rep(0.5, n)
-#' freq = list()
-#' for (i in 1:n)
-#'   freq[[i]] =  list(afreq = c("1" = p[i], "2" = 1- p[i]))
 #' ped = halfSibPed()
 #' ped = setMarkers(ped, locusAttributes = NorwegianFrequencies)
 #' ids = leaves(ped)
-#' N = 100 # no of confidence intervals
-#' B = 400 # no of  bootstraps
+#' N = 2 # no of confidence intervals
+#' B = 100 # no of  bootstraps
 #' CItype = "bca"
 #' conf.level = 0.8
 #' plot = FALSE
@@ -75,41 +69,43 @@ bootPhi <- function(ped, ids = NULL, N = 2, B = 2,
                     verbose  = F){
   if(!is.null(seed))
     set.seed(seed)
-  tabParam  = tabNonparam = matrix(ncol = 5, nrow = N)
+  tabParam  = tabNonparam = matrix(ncol = 6, nrow = N)
   dn = list(c(paste0("sim", 1:N)),
-            c("phi.hat", "skew", "lower", "upper", "cover"))
+            c("realised", "boot", "skew", "lower", "upper", "cover"))
   dimnames(tabParam) = dimnames(tabNonparam) = dn
-  phi.hat = skew =  rep(NA, N)
+  boot = skew =  rep(NA, N)
   sim = profileSim(ped, N = N, ids = ids)
   kappas.obs = lapply(sim, function(x)
                as.double(ibdEstimate(x, verbose = FALSE)[1,4:6]))
-  phi.obs = unlist(lapply(kappas.obs, function(x) 0.25*x[2] + 0.5*x[3]))
+  realised = unlist(lapply(kappas.obs, function(x) 0.25*x[2] + 0.5*x[3]))
   phi = kinship(ped, ids = ids)
 
   for (j in 1:N){
     if(verbose) cat(j, " ")
     bootPar = ibdBootstrap(ped, kappa = kappas.obs[[j]],  N = B, plot = plot)
     phis = 0.25*bootPar[,2] + 0.5*bootPar[,3]
-    phi.hat = mean(phis)
-    skew = phi.hat - phi.obs[j]
+    boot = mean(phis)
+    skew = boot - realised[j]
     CI = interval(phis, method = CItype, conf.level = conf.level)
     coverage = (CI[1] <= phi) & (CI[2] >= phi)
-    tabParam[j, 1:5] = c(phi.hat, skew, CI, coverage)
+    tabParam[j, 1:6] = c(realised[j], boot, skew, CI, coverage)
 
     bootNon = ibdBootstrap(sim[[j]], ids, param = "kappa", N = B,
                           method = "nonparametric", plot = plot)
     phis = 0.25*bootNon[,2] + 0.5*bootNon[,3]
-    phi.hat = mean(phis)
-    skew = phi.hat - phi.obs[j]
+    boot = mean(phis)
+    skew = boot - realised[j]
     CI = interval(phis, method = CItype, conf.level = conf.level)
     coverage = (CI[1] <= phi) & (CI[2] >= phi)
-    tabNonparam[j, 1:5] = c(phi.hat, skew, CI, coverage)
+    tabNonparam[j, 1:6] = c(realised[j], boot, skew, CI, coverage)
    }
 
   average = rbind(apply(tabParam, 2, mean),
                   apply(tabNonparam, 2, mean))
-  average = data.frame(method = c("parametric", "nonparametric"), average)
-  list(average = average, tabParam = tabParam, tabNonparam = tabNonparam)
+  average = data.frame(average)
+  rownames(average) = c("par", "nonpar")
+  list(averagedSimulations = average, pedigree.phi = phi,
+       simParametric = tabParam, simNonparametric = tabNonparam)
 }
 
 

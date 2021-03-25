@@ -63,21 +63,15 @@ See note coverage.pdf
 }
 \examples{
 library(forrel)
-library(pedprobr)
 library(ribd)
-library(coxed)
+library(coxed) # for bca confidence intervals
 
 # Example Estimate coverage and more
-n = 100 # no of markers
-p = rep(0.5, n)
-freq = list()
-for (i in 1:n)
-  freq[[i]] =  list(afreq = c("1" = p[i], "2" = 1- p[i]))
 ped = halfSibPed()
 ped = setMarkers(ped, locusAttributes = NorwegianFrequencies)
 ids = leaves(ped)
-N = 100 # no of confidence intervals
-B = 400 # no of  bootstraps
+N = 2 # no of confidence intervals
+B = 100 # no of  bootstraps
 CItype = "bca"
 conf.level = 0.8
 plot = FALSE
