@@ -1,68 +1,70 @@
 #'
-#' Coverage for bootstrap confidence intervals
+#' Properties of bootstrap confidence intervals for the kinship coefficient
 #'
-#' Currently we only consider parametric bootstrap and the kinship coefficient.
+#' The purpose is to compare parametric and nonparametric confidence
+#' intervals in kinship applications, currently only for the kinship coefficient.
 #'
 #' @param ped ped object with allele frequencies.
 #' @param ids Id of pair.
 #' @param N Integer. No of simulations.
 #' @param B Integer. No of bootstraps.
-#' @param CItype Logical
+#' @param CItype Logical. See [kinBoot::interval()]
 #' @param conf.level Double
 #' @param plot Logical
 #' @param seed Integer.
 #' @param verbose Logical.
+#'
+#'
+#' @return A list with the following four elements:
+#'
+#'   * `phi`: The kinship coefficient of the pedigree.
+#'
+#'   * `averaged` : A data frame with two lines, one for `parametric`
+#'   and one for `nonParametric`. The values are averaged over the `N` simulations.
+#'   The columns `realised`, `boot`, `skew`, `lower`,  `upper`, and  `cover` are explained
+#'   in `Details.`
+#'
+#'   * `simParametric`. The entries are as for `averaged`
+#'   but for each parametric simulation.
+#'
+#'   * `simNonparametric` The entries are as for `averaged`
+#'   but for each nonparametric simulation.
 
-
-#'
-#' @return Returns a l
-#'
-#'
-#' @return Returns a list with two elements, a dataframe and the result
-#'   of last simulation called `lastBoot`(see documentation of `ibdBootstrap`).
-#'   The columns of the data frame are
-#'
-#'   * `phi.hat` The estimate for each bootstrap
-#'
-#'   * `skew` See details
-#'
-#'   * `dist` See documentation of `ibdBootstrap`
-#'
-#'   * `lower` Lower bound for interval
-#'
-#'
-#'   * `upper` Upper bound for interval
-#'
-#'   * `coverage`
-
-#' @details See note coverage.pdf
+#' @details Marker data are simulated `N` times giving `N` estimates of (kappa0, kappa1, kappa2).
+#' For each simulation, the `realised` phi is found. Parametric and nonparametric bootstrapping
+#' is done giving `boot` (the averaged kinship coefficient from `B` bootstrap simulations)
+#' and `skew` = `realised`- `boot`. There are various
+#' ways to calculate the confidence interval. The default is `bca` as implemented in `coxed::bca`. The
+#' variable `cover` is 1 if the confidence interval contains `phi` and 0 otherwise.
 #'
 #' @export
 #'
 #' @examples
+#' # The example considers the kinship coefficients between
+#' # brothers named `B1` and `B2` using the 35 markers in
+#' # forrel::NorwegianFrequencies.
+#'
 #' library(forrel)
 #' library(ribd)
 #' library(coxed) # for bca confidence intervals
 #'
-#' # Example Estimate coverage and more
-#' ped = halfSibPed()
+#' ids = c("B1", "B2")
+#' ped = nuclearPed(2, children = ids)
 #' ped = setMarkers(ped, locusAttributes = NorwegianFrequencies)
-#' ids = leaves(ped)
-#' N = 2 # no of confidence intervals
-#' B = 100 # no of  bootstraps
-#' CItype = "bca"
-#' conf.level = 0.8
-#' plot = FALSE
-#' seed = 2
-
-#' res1 = bootPhi(ped = ped, ids = ids, N = N, B = B,
-#'                CItype = CItype, conf.level = conf.level, plot = plot, seed = seed)
+#' N = 10 # no of confidence intervals. Increase
+#' B = 100 # no of  bootstraps. Increase
+#' res1 = bootPhi(ped, ids, N, B, seed = 17)
 #'
-#' boot1 = res1$lastBoot
-#' phi.hat = 0.25*boot1$k1 + 0.5*boot1$k2
-#' plot(density(phi.hat), main = "", xlab = "Kinship coefficient")
-#' qqnorm(phi.hat)
-
+#' # Basic output
+#' res1[1:2]
+#'
+#' # Compare parametric and nonparametric estimates
+#' y1 = res1$simParametric$boot
+#' y2 = res1$simNonparametric$boot
+#' boxplot(y1, y2, names = c("parametric", "nonparametric"),
+#'         main = "Bootstrap estimates of kinship coefficient",
+#'         sub = "Red stapled line: theoretical value")
+#' abline(h = res1$phi, col = 'red', lty = 2)
 
 bootPhi <- function(ped, ids = NULL, N = 2, B = 2,
                     CItype = "bca", conf.level = 0.95, plot = F, seed = NULL,
@@ -103,9 +105,11 @@ bootPhi <- function(ped, ids = NULL, N = 2, B = 2,
   average = rbind(apply(tabParam, 2, mean),
                   apply(tabNonparam, 2, mean))
   average = data.frame(average)
-  rownames(average) = c("par", "nonpar")
-  list(averagedSimulations = average, pedigree.phi = phi,
-       simParametric = tabParam, simNonparametric = tabNonparam)
+  rownames(average) = c("parametric", "nonparametric")
+  list(phi = phi,
+       averaged = as.data.frame(average),
+       simParametric = as.data.frame(tabParam),
+       simNonparametric = as.data.frame(tabNonparam))
 }
 
 

@@ -1,5 +1,5 @@
 #'
-#' Example: bootstrap confidence intervals
+#' Bootstrap confidence intervals
 #'
 #' We consider parametric and nonparametric bootstrap and the kinship coefficient for some pedigrees.
 #'
@@ -13,16 +13,17 @@
 #' @param verbose Logical
 #' @param db database
 #'
-
 #'
-#' @return Returns
-
-
-#' @details See note coverage.pdf
+#' @return Returns a data frame summarising the simulation.
+#' @details See [kinBoot::bootPhi()]
 #'
 #' @export
 #'
 #' @examples
+#' library(forrel)
+#' library(ribd)
+#' library(coxed) # for bca confidence intervals
+#'
 #' peds = list(quadHalfFirstCousins(), doubleFirstCousins(), nuclearPed(2),
 #'             halfSibPed(), cousinPed(1))
 #' names(peds) = c("QHFC",  "DFC", "S", "H", "FC")
@@ -39,11 +40,11 @@
 #' db = freq
 #' res1 = examplePhi(peds, idlist, N = N, B = B, seed = seed, db = db)
 #'
-#' # Example 2 Norwegian
+#' # Example 2 NorwegianFrequency
 #' db = NorwegianFrequencies
 #' res2 = examplePhi(peds, idlist, N = N, B = B, seed = seed, db = db)
 #'
-#' # Example Few Codis8
+#' # Example 3 Few markers, 8 CODIS markers
 #' codis8 = c("CSF1PO", "D3S1358", "D5S818", "D7S820", "D8S1179", "D13S317", "D16S539", "D18S51")
 #' db = NorwegianFrequencies[codis8]
 #' res3 = examplePhi(peds, idlist, N = N, B = B, seed = seed, db = db)

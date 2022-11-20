@@ -4,7 +4,7 @@
 \alias{interval}
 \title{Bootstrap confidence intervals}
 \usage{
-interval(x, method = "perc", conf.level = 0.95)
+interval(x, method = "bca", conf.level = 0.95)
 }
 \arguments{
 \item{x}{Double vector. Bootstrap sample.}
@@ -14,15 +14,16 @@ interval(x, method = "perc", conf.level = 0.95)
 \item{conf.level}{Double in(0,1). Confidence level}
 }
 \value{
-returns a vector of length 2
-in which the first element is the lower bound and the second element is the upper bound
+A vector of length 2
+in which the first element is the lower bound and the second element is the upper bound.
 }
 \description{
-Some alternative confidence intervals are implemented
+Some alternative confidence intervals are implemented.
 }
 \details{
 The implemented methods are `perc`, the standard using the `quantile` function R
-to find the percentile; `bca`, see `coxed::bca`` and 'student' based on the normal approximation.
+to find the percentile; `bca`, see `coxed::bca``, and 'student' based on
+the normal approximation.
 }
 \examples{
 library(coxed)
@@ -32,18 +33,7 @@ interval(x, method = "bca")
 interval(x, method = "student")
 interval(x, method = "Not implemented")
 
-# Example Efron&Tibshirani p 154
+# Example Efron & Tibshirani p 154
 x = c(52, 104, 146, 10, 51, 30, 40, 27, 46)
-n = length(x)
-m = mean (x)
-s2 = sum((x-m)^2)/(n-1)
-se = sqrt(s2)/sqrt(n)
-c("mean" = m, "se" = se)
 interval(x, method = "bca", conf.level = 0.9)
-
-# The bootstrap t-interval, Sect 12.5
-B = 2
-xstar = sample(x, replace = T)
-theta.hat = m
-Zstarb =
 }

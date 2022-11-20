@@ -2,7 +2,7 @@
 % Please edit documentation in R/examplePhi.R
 \name{examplePhi}
 \alias{examplePhi}
-\title{Example: bootstrap confidence intervals}
+\title{Bootstrap confidence intervals}
 \usage{
 examplePhi(
   peds,
@@ -36,15 +36,19 @@ examplePhi(
 \item{db}{database}
 }
 \value{
-Returns
+Returns a data frame summarising the simulation.
 }
 \description{
 We consider parametric and nonparametric bootstrap and the kinship coefficient for some pedigrees.
 }
 \details{
-See note coverage.pdf
+See [kinBoot::bootPhi()]
 }
 \examples{
+library(forrel)
+library(ribd)
+library(coxed) # for bca confidence intervals
+
 peds = list(quadHalfFirstCousins(), doubleFirstCousins(), nuclearPed(2),
             halfSibPed(), cousinPed(1))
 names(peds) = c("QHFC",  "DFC", "S", "H", "FC")
@@ -60,11 +64,11 @@ freq[[i]] =  list(afreq = c("1" = p[i], "2" = 1- p[i]))
 db = freq
 res1 = examplePhi(peds, idlist, N = N, B = B, seed = seed, db = db)
 
-# Example 2 Norwegian
+# Example 2 NorwegianFrequency
 db = NorwegianFrequencies
 res2 = examplePhi(peds, idlist, N = N, B = B, seed = seed, db = db)
 
-# Example Few Codis8
+# Example 3 Few markers, 8 CODIS markers
 codis8 = c("CSF1PO", "D3S1358", "D5S818", "D7S820", "D8S1179", "D13S317", "D16S539", "D18S51")
 db = NorwegianFrequencies[codis8]
 res3 = examplePhi(peds, idlist, N = N, B = B, seed = seed, db = db)
