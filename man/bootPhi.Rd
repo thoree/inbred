@@ -2,7 +2,7 @@
 % Please edit documentation in R/bootPhi.R
 \name{bootPhi}
 \alias{bootPhi}
-\title{Coverage for bootstrap confidence intervals}
+\title{Properties of bootstrap confidence intervals for the kinship coefficient}
 \usage{
 bootPhi(
   ped,
@@ -25,7 +25,7 @@ bootPhi(
 
 \item{B}{Integer. No of bootstraps.}
 
-\item{CItype}{Logical}
+\item{CItype}{Logical. See [kinBoot::interval()]}
 
 \item{conf.level}{Double}
 
@@ -36,51 +36,57 @@ bootPhi(
 \item{verbose}{Logical.}
 }
 \value{
-Returns a l
+A list with the following four elements:
 
-Returns a list with two elements, a dataframe and the result
-  of last simulation called `lastBoot`(see documentation of `ibdBootstrap`).
-  The columns of the data frame are
+  * `phi`: The kinship coefficient of the pedigree.
 
-  * `phi.hat` The estimate for each bootstrap
+  * `averaged` : A data frame with two lines, one for `parametric`
+  and one for `nonParametric`. The values are averaged over the `N` simulations.
+  The columns `realised`, `boot`, `skew`, `lower`,  `upper`, and  `cover` are explained
+  in `Details.`
 
-  * `skew` See details
+  * `simParametric`. The entries are as for `averaged`
+  but for each parametric simulation.
 
-  * `dist` See documentation of `ibdBootstrap`
-
-  * `lower` Lower bound for interval
-
-
-  * `upper` Upper bound for interval
-
-  * `coverage`
+  * `simNonparametric` The entries are as for `averaged`
+  but for each nonparametric simulation.
 }
 \description{
-Currently we only consider parametric bootstrap and the kinship coefficient.
+The purpose is to compare parametric and nonparametric confidence
+intervals in kinship applications, currently only for the kinship coefficient.
 }
 \details{
-See note coverage.pdf
+Marker data are simulated `N` times giving `N` estimates of (kappa0, kappa1, kappa2).
+For each simulation, the `realised` phi is found. Parametric and nonparametric bootstrapping
+is done giving `boot` (the averaged kinship coefficient from `B` bootstrap simulations)
+and `skew` = `realised`- `boot`. There are various
+ways to calculate the confidence interval. The default is `bca` as implemented in `coxed::bca`. The
+variable `cover` is 1 if the confidence interval contains `phi` and 0 otherwise.
 }
 \examples{
+# The example considers the kinship coefficients between
+# brothers named `B1` and `B2` using the 35 markers in
+# forrel::NorwegianFrequencies.
+
 library(forrel)
 library(ribd)
 library(coxed) # for bca confidence intervals
 
-# Example Estimate coverage and more
-ped = halfSibPed()
+ids = c("B1", "B2")
+ped = nuclearPed(2, children = ids)
 ped = setMarkers(ped, locusAttributes = NorwegianFrequencies)
-ids = leaves(ped)
-N = 2 # no of confidence intervals
-B = 100 # no of  bootstraps
-CItype = "bca"
-conf.level = 0.8
-plot = FALSE
-seed = 2
-res1 = bootPhi(ped = ped, ids = ids, N = N, B = B,
-               CItype = CItype, conf.level = conf.level, plot = plot, seed = seed)
+N = 10 # no of confidence intervals. Increase
+B = 100 # no of  bootstraps. Increase
+res1 = bootPhi(ped, ids, N, B, seed = 17)
 
-boot1 = res1$lastBoot
-phi.hat = 0.25*boot1$k1 + 0.5*boot1$k2
-plot(density(phi.hat), main = "", xlab = "Kinship coefficient")
-qqnorm(phi.hat)
+# Basic output
+res1[1:2]
+
+# Compare parametric and nonparametric estimates
+y1 = res1$simParametric$boot
+y2 = res1$simNonparametric$boot
+boxplot(y1, y2, names = c("parametric", "nonparametric"),
+        main = "Bootstrap estimates of kinship coefficient",
+        sub = "Red stapled line: theoretical value")
+abline(h = res1$phi, col = 'red', lty = 2)
 }
